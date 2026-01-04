@@ -1,0 +1,7 @@
+ ⚠ Linting is disabled.
+  ▲ Next.js 14.2.35
+  - Environments: .env
+
+   Creating an optimized production build ...
+
+> Build failed because of webpack errors

@@ -1,0 +1,68 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  admin
+  member
+}
+
+enum Direction {
+  expense
+  income
+  transfer
+}
+
+enum Source {
+  cash
+  bank
+  ewallet
+  unknown
+}
+
+model User {
+  id           String        @id @default(uuid())
+  username     String        @unique
+  passwordHash String
+  role         Role          @default(member)
+  createdAt    DateTime      @default(now())
+  transactions Transaction[]
+  sessions     Session[]
+}
+
+model Session {
+  id        String   @id @default(uuid())
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  tokenHash String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
+
+model Transaction {
+  id           String    @id @default(uuid())
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId       String
+  occurredAt   DateTime  @default(now())
+  amount       Int
+  direction    Direction
+  rawMessage   String    @db.VarChar(280)
+  cleanNote    String    @db.VarChar(280)
+  category     String    @db.VarChar(64)
+  merchant     String?   @db.VarChar(128)
+  source       Source    @default(unknown)
+  tags         Json
+  aiConfidence Float
+  aiModel      String    @db.VarChar(64)
+  aiVersion    String    @db.VarChar(32)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@index([userId, occurredAt])
+  @@index([category])
+}
