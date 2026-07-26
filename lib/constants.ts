@@ -1,5 +1,6 @@
 export const TRANSACTION_CATEGORIES = [
   'Food & Drink',
+  'Groceries',
   'Transport',
   'Fuel / Gas',
   'Online Shopping',
@@ -11,12 +12,17 @@ export const TRANSACTION_CATEGORIES = [
   'Insurance',
   'Education',
   'Entertainment',
+  'Sports / Outdoor',
   'Donations / Charity',
   'Taxes / Fees',
   'Loan / Debt',
+  'Clothing',
+  'Self Care',
   'Family / Gifts',
   'Pets',
+  'Vehicle Maintenance',
   'Savings / Investment',
+  'Office / Stationery',
   'Salary / Income',
   'Transfer',
   'Other'
@@ -30,4 +36,4 @@ export type TransactionSource = (typeof TRANSACTION_SOURCES)[number];
 export const TRANSACTION_DIRECTIONS = ['expense', 'income', 'transfer'] as const;
 export type TransactionDirection = (typeof TRANSACTION_DIRECTIONS)[number];
 
-export const AI_VERSION = 'v1.0.0';
+export const AI_VERSION = 'v1.1.0';
