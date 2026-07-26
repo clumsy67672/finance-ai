@@ -1,4 +1,3 @@
-import { OpenRouter } from '@openrouter/sdk';
 import {
   AI_VERSION,
   TRANSACTION_CATEGORIES,
@@ -8,56 +7,72 @@ import {
   type TransactionSource
 } from '@/lib/constants';
 
-let client: OpenRouter | null = null;
+const VALID_CATEGORIES = TRANSACTION_CATEGORIES.join(', ');
+const VALID_SOURCES = TRANSACTION_SOURCES.join(', ');
 
-function getClient(): OpenRouter {
-  const apiKey = process.env.OPENAI_API_KEY;
-  if (!apiKey) {
-    throw new Error('OPENAI_API_KEY is not configured');
-  }
-
-  if (!client) {
-    client = new OpenRouter({
-      apiKey,
-      serverURL: process.env.OPENAI_BASE_URL,
-      httpReferer: process.env.OPENAI_SITE_URL,
-      xTitle: process.env.OPENAI_APP_NAME
-    });
-  }
-
-  return client;
+function classifyPrompt(amount: number, cleanNote: string, direction: TransactionDirection) {
+  return {
+    model: process.env.OPENAI_MODEL || 'qwen-web/qwen3.6-plus',
+    messages: [
+      {
+        role: 'system',
+        content: `You classify Indonesian family finance transactions. Return ONLY valid JSON with no markdown, no code fences, no extra text.
+Rules:
+- category must be exactly one of: ${VALID_CATEGORIES}
+- merchant: string or null
+- source must be exactly one of: ${VALID_SOURCES}
+- tags: short lowercase keywords array
+- confidence: number between 0 and 1
+Example: {"category":"Food & Drink","merchant":"Indomaret","source":"cash","tags":["snacks"],"confidence":0.9}`
+      },
+      {
+        role: 'user',
+        content: `Amount (IDR integer): ${amount}\nDirection: ${direction}\nNote: ${cleanNote}`
+      }
+    ],
+    max_tokens: 256
+  };
 }
 
-const structuredFormat = {
-  name: 'TransactionClassification',
-  schema: {
-    type: 'object',
-    properties: {
-      category: {
-        type: 'string',
-        enum: [...TRANSACTION_CATEGORIES]
-      },
-      merchant: {
-        type: 'string'
-      },
-      source: {
-        type: 'string',
-        enum: [...TRANSACTION_SOURCES]
-      },
-      tags: {
-        type: 'array',
-        items: { type: 'string' }
-      },
-      confidence: {
-        type: 'number',
-        minimum: 0,
-        maximum: 1
-      }
+async function callOmniRoute(body: object): Promise<string> {
+  const baseUrl = process.env.OPENAI_BASE_URL || 'http://localhost:20128/v1';
+  const apiKey = process.env.OPENAI_API_KEY || 'sk-local';
+  const url = `${baseUrl.replace(/\/$/, '')}/chat/completions`;
+
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${apiKey}`
     },
-    required: ['category', 'merchant', 'source', 'tags', 'confidence'],
-    additionalProperties: false
+    body: JSON.stringify(body)
+  });
+
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(`OmniRoute API error ${response.status}: ${text}`);
   }
-};
+
+  // Read streaming response
+  const text = await response.text();
+  let fullContent = '';
+
+  for (const line of text.split('\n')) {
+    if (line.startsWith('data: ') && line.trim() !== 'data: [DONE]') {
+      try {
+        const parsed = JSON.parse(line.slice(6));
+        const delta = parsed.choices?.[0]?.delta;
+        if (delta?.content) {
+          fullContent += delta.content;
+        }
+      } catch {
+        // skip parse errors
+      }
+    }
+  }
+
+  return fullContent || text;
+}
 
 const mappingFormat = {
   name: 'CsvMapping',
@@ -121,52 +136,47 @@ export async function classifyTransaction(input: {
     return fallbackClassification(input.direction);
   }
 
-  const completion = await getClient().chat.send({
-    model: process.env.OPENAI_MODEL || 'gpt-4.1-mini',
-    messages: [
-      {
-        role: 'system',
-        content:
-          'You classify Indonesian family finance transactions. Use the provided schema. Category must be one of the allowed labels. Source must be cash, bank, ewallet, or unknown. Tags should be short lowercase keywords.'
-      },
-      {
-        role: 'user',
-        content: `Amount (IDR integer): ${input.amount}\nDirection: ${input.direction}\nNote: ${input.cleanNote}`
-      }
-    ],
-    maxCompletionTokens: 256,
-    responseFormat: {
-      type: 'json_schema',
-      jsonSchema: {
-        name: structuredFormat.name,
-        schema: structuredFormat.schema,
-        strict: true
-      }
-    }
-  });
+  const body = classifyPrompt(input.amount, input.cleanNote, input.direction);
+  let rawContent: string;
 
-  const firstChoice = completion.choices[0];
-  const payload = extractTextPayload(firstChoice?.message?.content);
-
-  if (!payload || typeof payload !== 'string' || !payload.trim()) {
-    throw new Error('Empty classification response');
+  try {
+    rawContent = await callOmniRoute(body);
+  } catch {
+    return fallbackClassification(input.direction);
   }
 
-  const parsed = JSON.parse(payload);
-  const category = TRANSACTION_CATEGORIES.includes(parsed.category)
+  if (!rawContent || !rawContent.trim()) {
+    return fallbackClassification(input.direction);
+  }
+
+  // Try to extract JSON from the response (handle markdown fences)
+  let jsonStr = rawContent.trim();
+  const jsonMatch = jsonStr.match(/\{[\s\S]*\}/);
+  if (jsonMatch) {
+    jsonStr = jsonMatch[0];
+  }
+
+  let parsed: Record<string, unknown>;
+  try {
+    parsed = JSON.parse(jsonStr);
+  } catch {
+    return fallbackClassification(input.direction);
+  }
+
+  const category = TRANSACTION_CATEGORIES.includes(parsed.category as any)
     ? (parsed.category as TransactionCategory)
     : fallbackClassification(input.direction).category;
-  const source = TRANSACTION_SOURCES.includes(parsed.source)
+  const source = TRANSACTION_SOURCES.includes(parsed.source as any)
     ? (parsed.source as TransactionSource)
     : 'unknown';
 
   return {
     category,
-    merchant: parsed.merchant || null,
+    merchant: typeof parsed.merchant === 'string' ? parsed.merchant : null,
     source,
-    tags: Array.isArray(parsed.tags) ? parsed.tags.slice(0, 5) : [],
+    tags: Array.isArray(parsed.tags) ? (parsed.tags as string[]).slice(0, 5) : [],
     confidence: typeof parsed.confidence === 'number' ? parsed.confidence : 0,
-    model: completion.model ?? process.env.OPENAI_MODEL ?? 'unknown',
+    model: body.model,
     version: AI_VERSION
   };
 }
@@ -187,13 +197,14 @@ export async function inferCsvColumnsWithAI(input: {
     }
     return { row: index + 1, values: entry };
   });
-  const completion = await getClient().chat.send({
-    model: process.env.OPENAI_MODEL || 'gpt-4.1-mini',
+
+  const body = {
+    model: process.env.OPENAI_MODEL || 'qwen-web/qwen3.6-plus',
     messages: [
       {
         role: 'system',
         content:
-          'You identify which CSV columns represent transaction amount, description, optional date, and optional type. Always return column names exactly as provided or null when unknown.'
+          'You identify which CSV columns represent transaction amount, description, optional date, and optional type. Always return column names exactly as provided or null when unknown. Return ONLY valid JSON.'
       },
       {
         role: 'user',
@@ -203,28 +214,23 @@ export async function inferCsvColumnsWithAI(input: {
         })
       }
     ],
-    maxCompletionTokens: 256,
-    responseFormat: {
-      type: 'json_schema',
-      jsonSchema: {
-        name: mappingFormat.name,
-        schema: mappingFormat.schema,
-        strict: true
-      }
-    }
-  });
-  const mappingChoice = completion.choices[0];
-  const payload = extractTextPayload(mappingChoice?.message?.content);
-  if (!payload || typeof payload !== 'string') {
+    max_tokens: 256
+  };
+
+  try {
+    const rawContent = await callOmniRoute(body);
+    const jsonMatch = rawContent.match(/\{[\s\S]*\}/);
+    const jsonStr = jsonMatch ? jsonMatch[0] : rawContent.trim();
+    const parsed = JSON.parse(jsonStr);
+    const sanitize = (value: unknown) =>
+      typeof value === 'string' && input.columns.includes(value) ? value : null;
+    return {
+      amount: sanitize(parsed.amount),
+      description: sanitize(parsed.description),
+      date: sanitize(parsed.date),
+      type: sanitize(parsed.type)
+    };
+  } catch {
     return null;
   }
-  const parsed = JSON.parse(payload);
-  const sanitize = (value: unknown) =>
-    typeof value === 'string' && input.columns.includes(value) ? value : null;
-  return {
-    amount: sanitize(parsed.amount),
-    description: sanitize(parsed.description),
-    date: sanitize(parsed.date),
-    type: sanitize(parsed.type)
-  };
 }
