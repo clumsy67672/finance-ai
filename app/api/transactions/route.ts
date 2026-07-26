@@ -3,7 +3,8 @@ import { prisma } from '@/lib/prisma';
 import { getCurrentUser } from '@/lib/auth';
 import { transactionMessageSchema } from '@/lib/validators';
 import { parseChatMessage } from '@/lib/parsing';
-import { classifyTransaction } from '@/lib/openai';
+import { classifyTransaction, parseTransactions } from '@/lib/openai';
+import { AI_VERSION } from '@/lib/constants';
 import { assertRateLimit } from '@/lib/rate-limit';
 import { startOfMonth, endOfMonth, startOfYear, endOfYear } from 'date-fns';
 
@@ -76,43 +77,75 @@ export async function POST(request: Request) {
     assertRateLimit(`${user.id}:input`, 5, 15000);
     const payload = await request.json();
     const data = transactionMessageSchema.parse(payload);
-    const entries = data.message
-      .split(/\n+/)
-      .map((line) => line.trim())
-      .filter(Boolean);
 
-    if (entries.length === 0) {
-      throw new Error('Message is empty');
-    }
+    // Step 1: Try AI parsing — extracts all transactions from raw text
+    const aiParsed = await parseTransactions(data.message);
 
     const createdTransactions = [];
 
-    for (const entry of entries) {
-      const { amount, cleanNote, direction } = parseChatMessage(entry);
-      const classification = await classifyTransaction({ amount, cleanNote, direction });
+    if (aiParsed && aiParsed.length > 0) {
+      // AI successfully parsed — save each transaction directly
+      for (const tx of aiParsed) {
+        const transaction = await prisma.transaction.create({
+          data: {
+            userId: user.id,
+            amount: tx.amount,
+            direction: tx.direction as any,
+            rawMessage: data.message,
+            cleanNote: tx.cleanNote,
+            category: tx.category,
+            occurredAt: new Date(),
+            merchant: tx.merchant,
+            source: tx.source as any,
+            tags: tx.tags,
+            aiConfidence: tx.confidence,
+            aiModel: process.env.OPENAI_MODEL || 'qwen-web/qwen3.6-plus',
+            aiVersion: AI_VERSION
+          },
+          include: {
+            user: { select: { id: true, username: true } }
+          }
+        });
+        createdTransactions.push(transaction);
+      }
+    } else {
+      // Fallback: local parsing
+      const entries = data.message
+        .split(/\n+/)
+        .map((line) => line.trim())
+        .filter(Boolean);
 
-      const transaction = await prisma.transaction.create({
-        data: {
-          userId: user.id,
-          amount,
-          direction,
-          rawMessage: entry,
-          cleanNote,
-          category: classification.category,
-          occurredAt: new Date(),
-          merchant: classification.merchant,
-          source: classification.source,
-          tags: classification.tags,
-          aiConfidence: classification.confidence,
-          aiModel: classification.model,
-          aiVersion: classification.version
-        },
-        include: {
-          user: { select: { id: true, username: true } }
-        }
-      });
+      if (entries.length === 0) {
+        throw new Error('Message is empty');
+      }
 
-      createdTransactions.push(transaction);
+      for (const entry of entries) {
+        const { amount, cleanNote, direction } = parseChatMessage(entry);
+        const classification = await classifyTransaction({ amount, cleanNote, direction });
+
+        const transaction = await prisma.transaction.create({
+          data: {
+            userId: user.id,
+            amount,
+            direction,
+            rawMessage: entry,
+            cleanNote,
+            category: classification.category,
+            occurredAt: new Date(),
+            merchant: classification.merchant,
+            source: classification.source,
+            tags: classification.tags,
+            aiConfidence: classification.confidence,
+            aiModel: classification.model,
+            aiVersion: classification.version
+          },
+          include: {
+            user: { select: { id: true, username: true } }
+          }
+        });
+
+        createdTransactions.push(transaction);
+      }
     }
 
     if (createdTransactions.length === 1) {

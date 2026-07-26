@@ -181,6 +181,85 @@ export async function classifyTransaction(input: {
   };
 }
 
+export type ParsedTransaction = {
+  amount: number;
+  cleanNote: string;
+  direction: TransactionDirection;
+  category: TransactionCategory;
+  merchant: string | null;
+  source: TransactionSource;
+  tags: string[];
+  confidence: number;
+};
+
+/**
+ * Send raw message text to AI to extract all individual transactions.
+ * Falls back to local parsing if AI fails.
+ */
+export async function parseTransactions(rawMessage: string): Promise<ParsedTransaction[] | null> {
+  if (!process.env.OPENAI_API_KEY) return null;
+
+  const body = {
+    model: process.env.OPENAI_MODEL || 'qwen-web/qwen3.6-plus',
+    messages: [
+      {
+        role: 'system',
+        content: `You are a family finance transaction parser. Given Indonesian chat text, extract EACH individual transaction.
+Return a JSON **array** of objects. ONLY valid JSON array, NO markdown, NO code fences.
+
+CATEGORY MUST BE EXACTLY one of these (case-sensitive): ${VALID_CATEGORIES}
+
+Each object:
+{
+  "amount": integer (positive IDR — expand k=1000, rb=1000, ribu=1000, jt=1000000, juta=1000000, m=1000000),
+  "note": "short Indonesian description",
+  "direction": "expense" | "income" | "transfer",
+  "category": "EXACT category from the list above",
+  "merchant": string or null,
+  "source": "cash" | "bank" | "ewallet" | "unknown",
+  "tags": ["lowercase", "keywords"],
+  "confidence": 0.0-1.0
+}
+
+Rules:
+- Split text into individual transactions by recognizing amounts, transition words (terus, lalu, lanjut), or natural boundaries
+- "bayar utang" / "bayar hutang" → "Loan / Debt"
+- "beli" → "expense"
+- "gaji" / "salary" → "income"
+- "transfer" / "tf" → "transfer"
+- "indomaret" / "alfamart" → "Groceries"
+- "bensin" → "Fuel / Gas"`
+      },
+      {
+        role: 'user',
+        content: rawMessage
+      }
+    ],
+    max_tokens: 1024
+  };
+
+  try {
+    const rawContent = await callOmniRoute(body);
+    const jsonMatch = rawContent.match(/\[[\s\S]*\]/);
+    const jsonStr = jsonMatch ? jsonMatch[0] : rawContent.trim();
+    const parsed = JSON.parse(jsonStr);
+    if (!Array.isArray(parsed)) return null;
+
+    return parsed.map((item: any) => ({
+      amount: typeof item.amount === 'number' ? Math.round(Math.abs(item.amount)) : 0,
+      cleanNote: typeof item.note === 'string' ? item.note.charAt(0).toUpperCase() + item.note.slice(1) : 'Unknown',
+      direction: ['expense', 'income', 'transfer'].includes(item.direction) ? item.direction : 'expense',
+      category: TRANSACTION_CATEGORIES.includes(item.category) ? item.category : 'Other',
+      merchant: typeof item.merchant === 'string' ? item.merchant : null,
+      source: TRANSACTION_SOURCES.includes(item.source) ? item.source : 'unknown',
+      tags: Array.isArray(item.tags) ? item.tags.slice(0, 5) : [],
+      confidence: typeof item.confidence === 'number' ? item.confidence : 0,
+    }));
+  } catch {
+    return null;
+  }
+}
+
 export async function inferCsvColumnsWithAI(input: {
   columns: string[];
   rows: Array<Record<string, string>>;
