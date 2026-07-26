@@ -1,0 +1,35 @@
+{
+  "window": "7d",
+  "generated_at": "2026-07-26T22:56:18.563601+07:00",
+  "metrics": {
+    "commits": 5,
+    "contributors": 1,
+    "prs_merged": 0,
+    "total_insertions": 1406,
+    "total_deletions": 150,
+    "net_loc": 1256,
+    "test_loc_ratio": 0,
+    "version_range": "none",
+    "active_days": 1,
+    "sessions": 2,
+    "avg_loc_per_session_hour": 1256
+  },
+  "authors": {
+    "Azriel Syaqiq Hermansyah": {
+      "commits": 5,
+      "insertions": 1406,
+      "deletions": 150,
+      "net_loc": 1256,
+      "top_areas": [
+        "lib/openai.ts",
+        "app/api/transactions/route.ts",
+        "worker/hermes_worker.py"
+      ]
+    }
+  },
+  "streak": {
+    "team": 1,
+    "personal": 1
+  },
+  "tweetable": "Week of Jul 19: 5 commits (solo), 1.4k LOC, 0% tests, 0 PRs, 2 sessions | Streak: 1d"
+}
