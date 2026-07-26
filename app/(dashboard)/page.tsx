@@ -4,10 +4,12 @@ import CategoryChart from '@/components/charts/category-chart';
 import SpendingTrend from '@/components/charts/spending-trend';
 import RecentTransactions from '@/components/recent-transactions';
 import TopExpenses from '@/components/top-expenses';
+import PendingBadge from '@/components/pending-badge';
 
 export default function OverviewPage() {
   return (
     <div className="space-y-8">
+      <PendingBadge />
       <div className="grid gap-6 lg:grid-cols-2">
         <ChatInput />
         <DashboardSummary />

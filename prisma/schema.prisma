@@ -60,9 +60,21 @@ model Transaction {
   aiConfidence Float
   aiModel      String    @db.VarChar(64)
   aiVersion    String    @db.VarChar(32)
+  rawQueueId   String?
+  rawQueue     RawQueue? @relation(fields: [rawQueueId], references: [id])
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
 
   @@index([userId, occurredAt])
   @@index([category])
+}
+
+model RawQueue {
+  id        String   @id @default(uuid())
+  rawText   String
+  userId    String?
+  createdAt DateTime @default(now())
+  status    String   @default("PENDING") // PENDING | PROCESSING | PROCESSED | ERROR
+  error     String?
+  transactions Transaction[]
 }

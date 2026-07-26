@@ -112,7 +112,45 @@ export default function TransactionsView({ role, initialFilters }: Props) {
   return (
     <div className="space-y-6">
       <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-        <h2 className="text-lg font-semibold text-slate-900">Filters</h2>
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-semibold text-slate-900">Filters</h2>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                const params = new URLSearchParams();
+                params.set('format', 'csv');
+                if (filters.range) params.set('range', filters.range);
+                if (filters.range === 'month' && filters.month) params.set('month', filters.month);
+                if (filters.range === 'year' && filters.year) params.set('year', filters.year);
+                if (filters.category) params.set('category', filters.category);
+                if (filters.direction) params.set('direction', filters.direction);
+                if (filters.userId) params.set('userId', filters.userId);
+                window.open(`/api/transactions/export?${params.toString()}`, '_blank');
+              }}
+              className="rounded-full border border-slate-300 px-4 py-1.5 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-50"
+            >
+              Export CSV
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                const params = new URLSearchParams();
+                params.set('format', 'jsonl');
+                if (filters.range) params.set('range', filters.range);
+                if (filters.range === 'month' && filters.month) params.set('month', filters.month);
+                if (filters.range === 'year' && filters.year) params.set('year', filters.year);
+                if (filters.category) params.set('category', filters.category);
+                if (filters.direction) params.set('direction', filters.direction);
+                if (filters.userId) params.set('userId', filters.userId);
+                window.open(`/api/transactions/export?${params.toString()}`, '_blank');
+              }}
+              className="rounded-full border border-slate-300 px-4 py-1.5 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-50"
+            >
+              Export JSONL
+            </button>
+          </div>
+        </div>
         <div className="mt-4 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <label className="text-sm text-slate-600">
             Range
