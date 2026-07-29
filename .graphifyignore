@@ -1,0 +1,10 @@
+.env
+.venv
+node_modules
+__pycache__
+*.pyc
+dist
+build
+.git
+.next
+graphify-out/cache

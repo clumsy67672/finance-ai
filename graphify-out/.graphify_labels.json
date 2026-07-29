@@ -1,0 +1,21 @@
+{
+  "0": "getCurrentUser",
+  "1": "transactions-view.tsx",
+  "2": "openai.ts",
+  "3": "compilerOptions",
+  "4": "dependencies",
+  "5": "hermes_worker.py",
+  "6": "devDependencies",
+  "7": "Family Finance Chat Ledger",
+  "8": "csv-mapping.ts",
+  "9": "Design: Async Queue + OmniRoute Worker for Finance AI",
+  "10": "scripts",
+  "11": "layout.tsx",
+  "12": "Repository Guidelines",
+  "13": "layout.tsx",
+  "14": "extends",
+  "15": "next.config.mjs",
+  "16": "next-env.d.ts",
+  "17": "postcss.config.js",
+  "18": "tailwind.config.ts"
+}

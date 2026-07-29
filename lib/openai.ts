@@ -53,8 +53,20 @@ async function callOmniRoute(body: object): Promise<string> {
     throw new Error(`OmniRoute API error ${response.status}: ${text}`);
   }
 
-  // Read streaming response
+  // Read response text
   const text = await response.text();
+
+  // Try parsing as standard non-streamed JSON response first
+  try {
+    const parsedJson = JSON.parse(text);
+    const content = parsedJson.choices?.[0]?.message?.content;
+    if (typeof content === 'string') {
+      return content;
+    }
+  } catch {
+    // Not a standard single JSON response, parsing as SSE stream
+  }
+
   let fullContent = '';
 
   for (const line of text.split('\n')) {
