@@ -7,7 +7,7 @@ services:
     environment:
       POSTGRES_DB: finance_ai
       POSTGRES_USER: finance
-      POSTGRES_PASSWORD: finance
+      POSTGRES_PASSWORD: 7wu394pejCknEgaFIXXkwbJp
     ports:
       - '5432:5432'
     volumes:
@@ -17,9 +17,12 @@ services:
     build: .
     depends_on:
       - postgres
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     environment:
-      DATABASE_URL: postgresql://finance:finance@postgres:5432/finance_ai?schema=public
+      DATABASE_URL: postgresql://finance:7wu394pejCknEgaFIXXkwbJp@postgres:5432/finance_ai?schema=public
       OPENAI_API_KEY: ${OPENAI_API_KEY}
+      OPENAI_BASE_URL: http://host.docker.internal:20128/v1
       OPENAI_MODEL: ${OPENAI_MODEL:-gpt-4.1-mini}
       SESSION_SECRET: ${SESSION_SECRET}
     ports:
