@@ -18,7 +18,7 @@ services:
     depends_on:
       - postgres
     environment:
-      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/finance_ai?schema=public
+      DATABASE_URL: postgresql://finance:finance@postgres:5432/finance_ai?schema=public
       OPENAI_API_KEY: ${OPENAI_API_KEY}
       OPENAI_MODEL: ${OPENAI_MODEL:-gpt-4.1-mini}
       SESSION_SECRET: ${SESSION_SECRET}
