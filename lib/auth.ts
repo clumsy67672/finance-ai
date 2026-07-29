@@ -73,7 +73,8 @@ export async function getCurrentUser(): Promise<User | null> {
     if (session) {
       await prisma.session.delete({ where: { id: session.id } });
     }
-    cookies().delete(SESSION_COOKIE);
+    // Cannot call cookies().delete() in a server component render context.
+    // The cookie will expire naturally or be cleared by destroySession().
     return null;
   }
 
