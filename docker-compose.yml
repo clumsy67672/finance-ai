@@ -23,7 +23,7 @@ services:
       OPENAI_MODEL: ${OPENAI_MODEL:-gpt-4.1-mini}
       SESSION_SECRET: ${SESSION_SECRET}
     ports:
-      - '3000:3000'
+      - '4000:4000'
     env_file:
       - .env
 
