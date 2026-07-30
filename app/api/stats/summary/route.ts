@@ -22,14 +22,14 @@ export async function GET(request: Request) {
     lte: endOfMonth(monthDate)
   };
 
-  const whereBase = {
-    occurredAt: range,
-    userId: user.role === 'admin' ? undefined : user.id
-  };
-
   const targetUserId = searchParams.get('userId');
+  const whereBase: any = {
+    occurredAt: range,
+  };
   if (user.role === 'admin' && targetUserId) {
     whereBase.userId = targetUserId;
+  } else {
+    whereBase.userId = user.id;
   }
 
   const [income, expense, count] = await Promise.all([
