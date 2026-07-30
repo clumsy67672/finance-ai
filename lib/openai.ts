@@ -23,6 +23,24 @@ Rules:
 - source must be exactly one of: ${VALID_SOURCES}
 - tags: short lowercase keywords array
 - confidence: number between 0 and 1
+- Input is in Bahasa Indonesia — understand it as such
+- Fix typos in the note (e.g. "serviis" → "servis", "gacoan" → "Mie Gacoan") but keep the meaning
+Common item → category mappings:
+  IMPORTANT: rokok, sigaret, twiz → Other (NOT Food & Drink, NOT Entertainment)
+  minum, minuman → Food & Drink
+  jajan, jajanan → Food & Drink
+  gorengan → Food & Drink
+  bensin, pertalite, pertamax, solar → Fuel / Gas
+  pulsa, paket data, paketan → Internet & Mobile
+  shuttlecock, badminton, kok → Sports / Outdoor
+  servis, service → Self Care
+  bayar utang, bayar hutang → Loan / Debt
+  kunci, palu, obeng, tespen → Household Needs
+  indomaret, alfamart → Groceries
+  naik gunung, hiking, camping → Sports / Outdoor
+  bayar paylater, kredivo, akulaku → Loan / Debt
+  tf, transfer → Transfer
+  gaji, salary → Salary / Income
 Example: {"category":"Food & Drink","merchant":"Indomaret","source":"cash","tags":["snacks"],"confidence":0.9}`
       },
       {
@@ -216,7 +234,7 @@ export async function parseTransactions(rawMessage: string): Promise<ParsedTrans
     messages: [
       {
         role: 'system',
-        content: `You are a family finance transaction parser. Given Indonesian chat text, extract EACH individual transaction.
+        content: `You are a family finance transaction parser. Given Indonesian chat text (Bahasa Indonesia), extract EACH individual transaction.
 Return a JSON **array** of objects. ONLY valid JSON array, NO markdown, NO code fences.
 
 CATEGORY MUST BE EXACTLY one of these (case-sensitive): ${VALID_CATEGORIES}
@@ -224,7 +242,7 @@ CATEGORY MUST BE EXACTLY one of these (case-sensitive): ${VALID_CATEGORIES}
 Each object:
 {
   "amount": integer (positive IDR — expand k=1000, rb=1000, ribu=1000, jt=1000000, juta=1000000, m=1000000),
-  "note": "short Indonesian description",
+  "note": "short Indonesian description (fix minor typos)",
   "direction": "expense" | "income" | "transfer",
   "category": "EXACT category from the list above",
   "merchant": string or null,
@@ -234,13 +252,25 @@ Each object:
 }
 
 Rules:
+- Input is in Bahasa Indonesia — understand slang, typos, and abbreviations
 - Split text into individual transactions by recognizing amounts, transition words (terus, lalu, lanjut), or natural boundaries
-- "bayar utang" / "bayar hutang" → "Loan / Debt"
+- Fix typos in the note (e.g. "serviis" → "Servis", "gacoan" → "Mie Gacoan")
+- IMPORTANT: "rokok", "sigaret", "twiz" → MUST be "Other". NOT Food & Drink. NOT Entertainment.
+- "minum" → "Food & Drink"
+- "jajan", "jajanan", "gorengan" → "Food & Drink"
+- "bensin", "pertalite", "pertamax" → "Fuel / Gas"
+- "pulsa", "paket data", "paketan" → "Internet & Mobile"
+- "badminton", "shuttlecock", "naik gunung", "hiking" → "Sports / Outdoor"
+- "servis", "service" → "Self Care"
+- "kunci", "obeng", "tespen", "palu" → "Household Needs"
+- "indomaret", "alfamart" → "Groceries"
+- "pohong", "sossis", "gorengan" → "Groceries"
+- "bayar utang", "bayar hutang", "paylater", "kredivo" → "Loan / Debt"
+- "bayar badminton" → "Sports / Outdoor" (NOT Loan / Debt)
+- "tf", "transfer" → "Transfer (direction)" or follow context
+- "gaji", "salary", "honor" → "Salary / Income"
 - "beli" → "expense"
-- "gaji" / "salary" → "income"
-- "transfer" / "tf" → "transfer"
-- "indomaret" / "alfamart" → "Groceries"
-- "bensin" → "Fuel / Gas"`
+- Entertainment is for movies, games, concerts, streaming — NOT for daily items`
       },
       {
         role: 'user',
