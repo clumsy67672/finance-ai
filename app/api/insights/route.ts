@@ -6,7 +6,7 @@ import { callOmniRoute } from '@/lib/openai';
 import { TRANSACTION_CATEGORIES } from '@/lib/constants';
 
 type InsightPayload = {
-  status_kesehatan: 'Sehat' | 'Waspada' | 'Kritis';
+  status_kesehatan: 'Healthy' | 'Warning' | 'Critical';
   analisa_utama: string;
   rekomendasi_aksi: string[];
 };
@@ -51,13 +51,13 @@ async function generateInsight(userId: string, month: string): Promise<InsightPa
     messages: [
       {
         role: 'system',
-        content: `You are a family finance coach analyzing Indonesian household spending (Bahasa Indonesia input).
+        content: `You are a family finance coach analyzing Indonesian household spending (input data is in Bahasa Indonesia).
 Return ONLY valid JSON, no markdown, no code fences:
-{"analisa_utama": "string (1-2 sentences, in Indonesian)", "rekomendasi_aksi": ["string", "..." ]}
+{"analisa_utama": "string (1-2 sentences, in English)", "rekomendasi_aksi": ["string", "..." ]}
 
 Rules:
 - analisa_utama: mention the biggest category and the saving rate
-- rekomendasi_aksi: exactly 3 actionable, specific tips in Indonesian
+- rekomendasi_aksi: exactly 3 actionable, specific tips in English
 - Categories (EXACT strings): ${TRANSACTION_CATEGORIES.join(', ')}`
       },
       {
@@ -77,7 +77,7 @@ Rules:
   // model is unreliable for labels, so never trust its status output.
   const spendRatio = totalIncome > 0 ? totalExpense / totalIncome : 1;
   const status_kesehatan: InsightPayload['status_kesehatan'] =
-    spendRatio <= 0.5 ? 'Sehat' : spendRatio <= 0.8 ? 'Waspada' : 'Kritis';
+    spendRatio <= 0.5 ? 'Healthy' : spendRatio <= 0.8 ? 'Warning' : 'Critical';
   return {
     status_kesehatan,
     analisa_utama: String(parsed.analisa_utama),

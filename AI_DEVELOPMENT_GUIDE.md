@@ -2,6 +2,14 @@
 
 This document outlines the architectural guidelines, prompts, and code structures required to integrate a local Qwen LLM into the Next.js App Router expense tracker.
 
+## Language Policy (IMPORTANT)
+- **Parsing (`lib/openai.ts`):** input stays in Bahasa Indonesia (users type Indonesian). Prompt instructions are English; the model outputs Indonesian notes + English field names.
+- **Insights & Forecast (AI-generated text):** output in **English** — Qwen performs measurably better in English. Only the raw transaction data (Indonesian notes) is passed as context.
+- **Status enums:** English (`Healthy | Warning | Critical` for insights; `Safe | Warning | Deficit` for forecast).
+- UI copy is English. Indonesian is used nowhere except parsing input handling and stored notes.
+
+---
+
 ## 1. Local AI Infrastructure
 Since the environment runs on a local Ubuntu server using Docker, the application bypasses external cloud APIs.
 - **SDK:** Use the standard `openai` npm package (or plain `fetch` against `/v1/chat/completions`).
@@ -100,7 +108,7 @@ Anda WAJIB merespons HANYA dengan objek JSON yang valid menggunakan skema persis
 
 **Actual implementation notes (finance-ai):**
 - `app/api/insights/route.ts` → `GET` reads `InsightCache` (keyed `userId + month`), `POST` generates + upserts.
-- `status_kesehatan` is computed **deterministically server-side** from spend/income ratio (≤50% Sehat, ≤80% Waspada, else Kritis) — the 3B model is unreliable for labels. The LLM only writes `analisa_utama` + `rekomendasi_aksi`.
+- `status_kesehatan` is computed **deterministically server-side** from spend/income ratio (≤50% Healthy, ≤80% Warning, else Critical) — the 3B model is unreliable for labels. The LLM only writes `analisa_utama` + `rekomendasi_aksi`, both in **English**.
 - Dashboard widget: `components/insight-banner.tsx` (green/amber/red banner, Generate Insights button + spinner).
 
 ---
@@ -169,8 +177,8 @@ Anda WAJIB merespons HANYA dengan objek JSON yang valid menggunakan skema beriku
 ```
 
 **Actual implementation (finance-ai):**
-- `app/api/stats/forecast/route.ts` — computes the math projection server-side, derives routine patterns from SQL (top categories by frequency), calls the LLM with the payload above, returns `{ status_proyeksi, estimasi_pengeluaran_akhir, pesan_prediksi, proyeksi_matematis }`.
-- `status_proyeksi` is decided deterministically by comparing `estimasi_pengeluaran_akhir` vs budget; the LLM only provides `pesan_prediksi` + its own estimate, which is clamped to a sane range.
+- `app/api/stats/forecast/route.ts` — computes the math projection server-side, derives routine patterns from SQL (top categories by frequency), calls the LLM with the payload above, returns `{ status_proyeksi, estimasi_pengeluaran_akhir, pesan_prediksi, proyeksi_matematis }`. Prompt + output are in **English** (Qwen is stronger in English).
+- `status_proyeksi` is decided deterministically by comparing `estimasi_pengeluaran_akhir` vs budget (`Safe | Warning | Deficit`); the LLM only provides `pesan_prediksi` + its own estimate, which is clamped to a sane range.
 - `components/runway-forecast.tsx` — runway progress bar: filled = spend so far, dotted extension = AI end-of-month estimate, red vertical marker = budget line. Turns amber/red when the projection crosses the budget.
 
 ### 5.3 Frontend UI: The Runway Progress Bar

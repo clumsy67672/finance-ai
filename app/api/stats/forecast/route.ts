@@ -5,7 +5,7 @@ import { getCurrentUser } from '@/lib/auth';
 import { callOmniRoute } from '@/lib/openai';
 
 type ForecastPayload = {
-  status_proyeksi: 'Aman' | 'Waspada' | 'Defisit';
+  status_proyeksi: 'Safe' | 'Warning' | 'Deficit';
   estimasi_pengeluaran_akhir: number;
   pesan_prediksi: string;
 };
@@ -63,10 +63,10 @@ export async function GET(request: Request) {
     .slice(0, 4)
     .map((row) => {
       const amount = row._sum.amount ?? 0;
-      return `Kategori ${row.category}: total Rp${amount.toLocaleString('id-ID')} bulan ini`;
+      return `Category ${row.category}: Rp${amount.toLocaleString('id-ID')} this month`;
     });
 
-  const bulanLabel = monthDate.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' });
+  const bulanLabel = monthDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
 
   // ---- 5.2 AI forecast ----
   const body = {
@@ -74,15 +74,15 @@ export async function GET(request: Request) {
     messages: [
       {
         role: 'system',
-        content: `Anda adalah analis risiko keuangan. Anda akan menerima data pengeluaran saat ini, proyeksi matematis hingga akhir bulan, dan pola pengeluaran rutin pengguna.
+        content: `You are a financial risk analyst. You will receive the user's current spending, the mathematical projection until month-end, and their recurring spending patterns (source data is in Bahasa Indonesia).
 
-Tugas Anda:
-1. Analisa apakah pengguna akan overbudget di akhir bulan berdasarkan pola yang ada.
-2. Identifikasi pengeluaran rutin mana yang paling membebani sisa budget.
-3. Berikan 1 kalimat peringatan atau saran taktis agar sisa dana cukup hingga gajian berikutnya.
+Tasks:
+1. Assess whether the user will go over budget at month-end based on the patterns.
+2. Identify which recurring expense weighs most on the remaining budget.
+3. Give ONE sentence of warning or tactical advice so the remaining funds last until the next payday.
 
-Anda WAJIB merespons HANYA dengan objek JSON yang valid menggunakan skema berikut, tanpa teks lain:
-{"status_proyeksi": "Aman" | "Waspada" | "Defisit", "estimasi_pengeluaran_akhir": angka (integer), "pesan_prediksi": "Satu kalimat peringatan/saran prediksi dalam Bahasa Indonesia."}`
+You MUST respond with ONLY a valid JSON object matching this exact schema, no other text:
+{"status_proyeksi": "Safe" | "Warning" | "Deficit", "estimasi_pengeluaran_akhir": integer, "pesan_prediksi": "One sentence warning/prediction advice in English."}`
       },
       {
         role: 'user',
@@ -106,9 +106,9 @@ Anda WAJIB merespons HANYA dengan objek JSON yang valid menggunakan skema beriku
     if (jsonMatch) {
       const parsed = JSON.parse(jsonMatch[0]);
       llm = {
-        status_proyeksi: ['Aman', 'Waspada', 'Defisit'].includes(parsed.status_proyeksi)
+        status_proyeksi: ['Safe', 'Warning', 'Deficit'].includes(parsed.status_proyeksi)
           ? parsed.status_proyeksi
-          : 'Waspada',
+          : 'Warning',
         estimasi_pengeluaran_akhir:
           typeof parsed.estimasi_pengeluaran_akhir === 'number'
             ? Math.round(parsed.estimasi_pengeluaran_akhir)
@@ -123,7 +123,7 @@ Anda WAJIB merespons HANYA dengan objek JSON yang valid menggunakan skema beriku
   // ---- deterministic status from the math, LLM only refines the estimate ----
   const aiEstimate = llm ? clamp(llm.estimasi_pengeluaran_akhir, spent, Math.max(spent, mathProjection * 1.5)) : mathProjection;
   const status_proyeksi: ForecastPayload['status_proyeksi'] =
-    aiEstimate <= incomeTotal ? 'Aman' : aiEstimate <= incomeTotal * 1.15 ? 'Waspada' : 'Defisit';
+    aiEstimate <= incomeTotal ? 'Safe' : aiEstimate <= incomeTotal * 1.15 ? 'Warning' : 'Deficit';
 
   return NextResponse.json({
     bulan: bulanLabel,
@@ -133,11 +133,11 @@ Anda WAJIB merespons HANYA dengan objek JSON yang valid menggunakan skema beriku
     status_proyeksi,
     pesan_prediksi:
       llm?.pesan_prediksi ||
-      (status_proyeksi === 'Aman'
-        ? 'Proyeksi pengeluaran masih di dalam budget. Lanjutkan pola saat ini.'
-        : status_proyeksi === 'Waspada'
-          ? 'Proyeksi mendekati batas budget. Kurangi pengeluaran tidak rutin.'
-          : 'Proyeksi melebihi budget. Kurangi pengeluaran diskresioner agar dana cukup sampai gajian.'),
+      (status_proyeksi === 'Safe'
+        ? 'Projected spending stays within budget. Keep the current pace.'
+        : status_proyeksi === 'Warning'
+          ? 'Projection is approaching the budget limit. Trim non-essential spending.'
+          : 'Projection exceeds budget. Cut discretionary spending so funds last until payday.'),
     pola_rutin_terdeteksi: patterns
   });
 }

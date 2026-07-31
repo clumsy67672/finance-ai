@@ -4,26 +4,26 @@ import { useState } from 'react';
 import useSWR from 'swr';
 
 type Insight = {
-  status_kesehatan: 'Sehat' | 'Waspada' | 'Kritis';
+  status_kesehatan: 'Healthy' | 'Warning' | 'Critical';
   analisa_utama: string;
   rekomendasi_aksi: string[];
 };
 
 const STYLES: Record<Insight['status_kesehatan'], { banner: string; badge: string; label: string }> = {
-  Sehat: {
+  Healthy: {
     banner: 'border-emerald-200 bg-emerald-50',
     badge: 'bg-emerald-600 text-white',
-    label: 'Sehat'
+    label: 'Healthy'
   },
-  Waspada: {
+  Warning: {
     banner: 'border-amber-200 bg-amber-50',
     badge: 'bg-amber-500 text-white',
-    label: 'Waspada'
+    label: 'Warning'
   },
-  Kritis: {
+  Critical: {
     banner: 'border-rose-200 bg-rose-50',
     badge: 'bg-rose-600 text-white',
-    label: 'Kritis'
+    label: 'Critical'
   }
 };
 
@@ -91,7 +91,10 @@ export default function InsightBanner() {
     );
   }
 
-  const style = STYLES[data.status_kesehatan] ?? STYLES.Waspada;
+  const style =
+    STYLES[data.status_kesehatan] ??
+    STYLES[data.status_kesehatan === 'Sehat' ? 'Healthy' : data.status_kesehatan === 'Kritis' ? 'Critical' : 'Warning'] ??
+    STYLES.Warning;
 
   return (
     <div className={`rounded-2xl border p-5 shadow-sm ${style.banner}`}>

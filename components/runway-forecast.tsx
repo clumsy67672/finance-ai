@@ -8,15 +8,15 @@ type Forecast = {
   pengeluaran_saat_ini: number;
   proyeksi_matematis: number;
   estimasi_pengeluaran_akhir: number;
-  status_proyeksi: 'Aman' | 'Waspada' | 'Defisit';
+  status_proyeksi: 'Safe' | 'Warning' | 'Deficit';
   pesan_prediksi: string;
   pola_rutin_terdeteksi: string[];
 };
 
 const STYLES: Record<Forecast['status_proyeksi'], { banner: string; badge: string; label: string }> = {
-  Aman: { banner: 'border-emerald-200 bg-emerald-50', badge: 'bg-emerald-600 text-white', label: 'Aman' },
-  Waspada: { banner: 'border-amber-200 bg-amber-50', badge: 'bg-amber-500 text-white', label: 'Waspada' },
-  Defisit: { banner: 'border-rose-200 bg-rose-50', badge: 'bg-rose-600 text-white', label: 'Defisit' }
+  Safe: { banner: 'border-emerald-200 bg-emerald-50', badge: 'bg-emerald-600 text-white', label: 'Safe' },
+  Warning: { banner: 'border-amber-200 bg-amber-50', badge: 'bg-amber-500 text-white', label: 'Warning' },
+  Deficit: { banner: 'border-rose-200 bg-rose-50', badge: 'bg-rose-600 text-white', label: 'Deficit' }
 };
 
 export default function RunwayForecast() {
@@ -26,13 +26,16 @@ export default function RunwayForecast() {
     return (
       <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
         <p className="text-sm text-slate-500">Runway & forecast</p>
-        <h2 className="text-lg font-semibold text-slate-900">Ramalan pengeluaran</h2>
+        <h2 className="text-lg font-semibold text-slate-900">Spending forecast</h2>
         <p className="mt-3 text-sm text-slate-500">Loading...</p>
       </div>
     );
   }
 
-  const style = STYLES[data.status_proyeksi] ?? STYLES.Waspada;
+  const style =
+    STYLES[data.status_proyeksi] ??
+    STYLES[data.status_proyeksi === 'Aman' ? 'Safe' : data.status_proyeksi === 'Defisit' ? 'Deficit' : 'Warning'] ??
+    STYLES.Warning;
   const budget = Math.max(data.estimasi_pengeluaran_akhir, data.pengeluaran_saat_ini, 1);
   const spentPct = Math.min((data.pengeluaran_saat_ini / budget) * 100, 100);
   const projectedPct = Math.min((data.estimasi_pengeluaran_akhir / budget) * 100, 100);
@@ -42,7 +45,7 @@ export default function RunwayForecast() {
       <div className="flex items-center justify-between">
         <div>
           <p className="text-sm text-slate-500">Runway & forecast · {data.bulan}</p>
-          <h2 className="text-lg font-semibold text-slate-900">Ramalan pengeluaran</h2>
+          <h2 className="text-lg font-semibold text-slate-900">Spending forecast</h2>
         </div>
         <span className={`rounded-full px-3 py-0.5 text-xs font-semibold uppercase tracking-wide ${style.badge}`}>
           {style.label}
@@ -73,7 +76,7 @@ export default function RunwayForecast() {
         </div>
       </div>
 
-      <p className={`mt-3 text-sm ${style.label === 'Aman' ? 'text-emerald-700' : style.label === 'Waspada' ? 'text-amber-700' : 'text-rose-700'}`}>
+      <p className={`mt-3 text-sm ${style.label === 'Safe' ? 'text-emerald-700' : style.label === 'Warning' ? 'text-amber-700' : 'text-rose-700'}`}>
         {data.pesan_prediksi}
       </p>
 
