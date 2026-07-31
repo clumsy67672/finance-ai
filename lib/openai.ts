@@ -223,6 +223,67 @@ export type ParsedTransaction = {
 };
 
 /**
+ * Detects non-Latin scripts (Thai, Lao, CJK, Arabic, Cyrillic, Devanagari, etc.)
+ * that a small local model may hallucinate for Indonesian notes.
+ */
+const NON_LATIN_SCRIPT = /[\u0E00-\u0E7F\u0E80-\u0EFF\u3400-\u9FFF\u3040-\u30FF\u0600-\u06FF\u0400-\u04FF\u0900-\u097F\u0A00-\u0A7F\u0B00-\u0B7F\u0C00-\u0C7F\u0D00-\u0D7F\u1E00-\u1EFF\uAC00-\uD7AF]/;
+
+/**
+ * Cleans an AI-produced note. Returns null if the note is garbage
+ * (non-Latin script, only digits/symbols, or absurdly long).
+ */
+export function sanitizeAiNote(note: string | undefined): string | null {
+  if (typeof note !== 'string') return null;
+  const trimmed = note.trim();
+  if (!trimmed) return null;
+  if (trimmed.length > 120) return null;
+  if (NON_LATIN_SCRIPT.test(trimmed)) return null;
+  // Reject notes that are mostly symbols/digits with no letters
+  const letters = trimmed.replace(/[^a-zA-Z]/g, '');
+  if (letters.length < 2) return null;
+  return trimmed.charAt(0).toUpperCase() + trimmed.slice(1);
+}
+
+/**
+ * Reconstructs a note from the raw message for a given amount+direction,
+ * by stripping the amount and any source/type keywords.
+ */
+export function deriveNoteFromRaw(rawMessage: string, amount: number, direction: TransactionDirection): string {
+  try {
+    const parsed = parseChatMessageLocal(rawMessage);
+    if (parsed && parsed.amount === amount) {
+      return parsed.cleanNote;
+    }
+  } catch {
+    // fall through
+  }
+  const withoutAmount = rawMessage.replace(/\d+[\d.,]*\s*(k|rb|ribu|jt|juta|m)?/gi, '').trim();
+  const cleaned = withoutAmount
+    .replace(/\b(cash|bank|ewallet|transfer|tf|beli|bayar|gaji|salary)\b/gi, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+  if (cleaned) {
+    return cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
+  }
+  return direction === 'income' ? 'Income' : 'Expense';
+}
+
+function parseChatMessageLocal(message: string): { amount: number; cleanNote: string } | null {
+  const amountMatch = message.match(/(?:(?:rp|idr|usd|\$)\s*)?(-?\d+[\d.,]*)\s*(k|rb|ribu|jt|juta|m)?/i);
+  if (!amountMatch) return null;
+  const [, value, maybeSuffix] = amountMatch;
+  const commaAsDecimal = value.includes(',') && !value.includes('.');
+  const normalized = commaAsDecimal ? value.replace(/,/g, '.') : value;
+  const numeric = Number(normalized.replace(/[.,\s]/g, ''));
+  if (Number.isNaN(numeric)) return null;
+  const multiplierMap: Record<string, number> = { k: 1000, rb: 1000, ribu: 1000, jt: 1000000, juta: 1000000, m: 1000000 };
+  const multiplier = maybeSuffix ? multiplierMap[maybeSuffix.toLowerCase()] ?? 1 : 1;
+  const amount = Math.round(numeric * multiplier);
+  const cleaned = message.replace(amountMatch[0], '').replace(/\s+/g, ' ').trim();
+  return { amount, cleanNote: cleaned.charAt(0).toUpperCase() + cleaned.slice(1) };
+}
+
+/**
  * Send raw message text to AI to extract all individual transactions.
  * Falls back to local parsing if AI fails.
  */
@@ -287,16 +348,25 @@ Rules:
     const parsed = JSON.parse(jsonStr);
     if (!Array.isArray(parsed)) return null;
 
-    return parsed.map((item: any) => ({
-      amount: typeof item.amount === 'number' ? Math.round(Math.abs(item.amount)) : 0,
-      cleanNote: typeof item.note === 'string' ? item.note.charAt(0).toUpperCase() + item.note.slice(1) : 'Unknown',
-      direction: ['expense', 'income', 'transfer'].includes(item.direction) ? item.direction : 'expense',
-      category: TRANSACTION_CATEGORIES.includes(item.category) ? item.category : 'Other',
-      merchant: typeof item.merchant === 'string' ? item.merchant : null,
-      source: TRANSACTION_SOURCES.includes(item.source) ? item.source : 'unknown',
-      tags: Array.isArray(item.tags) ? item.tags.slice(0, 5) : [],
-      confidence: typeof item.confidence === 'number' ? item.confidence : 0,
-    }));
+    return parsed.map((item: any) => {
+      const direction: TransactionDirection = ['expense', 'income', 'transfer'].includes(item.direction)
+        ? item.direction
+        : 'expense';
+      let cleanNote = sanitizeAiNote(item.note);
+      if (!cleanNote) {
+        cleanNote = deriveNoteFromRaw(rawMessage, Math.round(Math.abs(Number(item.amount) || 0)), direction);
+      }
+      return {
+        amount: typeof item.amount === 'number' ? Math.round(Math.abs(item.amount)) : 0,
+        cleanNote,
+        direction,
+        category: TRANSACTION_CATEGORIES.includes(item.category) ? item.category : 'Other',
+        merchant: typeof item.merchant === 'string' ? item.merchant : null,
+        source: TRANSACTION_SOURCES.includes(item.source) ? item.source : 'unknown',
+        tags: Array.isArray(item.tags) ? item.tags.slice(0, 5) : [],
+        confidence: typeof item.confidence === 'number' ? item.confidence : 0,
+      };
+    });
   } catch {
     return null;
   }

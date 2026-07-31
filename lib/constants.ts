@@ -36,4 +36,4 @@ export type TransactionSource = (typeof TRANSACTION_SOURCES)[number];
 export const TRANSACTION_DIRECTIONS = ['expense', 'income', 'transfer'] as const;
 export type TransactionDirection = (typeof TRANSACTION_DIRECTIONS)[number];
 
-export const AI_VERSION = 'v1.2.0';
+export const AI_VERSION = 'v1.3.0';
