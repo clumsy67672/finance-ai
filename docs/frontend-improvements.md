@@ -40,6 +40,11 @@ same route to trigger generation. Response shape:
 }
 ```
 
+**Implementation note:** `status_kesehatan` is computed **deterministically
+server-side** from spend/income ratio (≤50% Sehat, ≤80% Waspada, else Kritis)
+— the 3B local model is unreliable for labels. The LLM only generates
+`analisa_utama` + `rekomendasi_aksi`.
+
 ## 2. Needs vs. Wants Progress Bar
 
 **Placement:** dashboard, alongside the category chart.
