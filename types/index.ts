@@ -24,6 +24,13 @@ export type SummaryStats = {
   totalExpense: number;
   net: number;
   count: number;
+  pacing?: {
+    spent: number;
+    income: number;
+    expectedByToday: number;
+    pacingPercent: number;
+    overPace: boolean;
+  };
 };
 
 export type CategoryBreakdown = {

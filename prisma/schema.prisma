@@ -78,3 +78,15 @@ model RawQueue {
   error     String?
   transactions Transaction[]
 }
+
+model InsightCache {
+  id        String   @id @default(uuid())
+  userId    String
+  month     String // YYYY-MM
+  payload   Json // { status_kesehatan, analisa_utama, rekomendasi_aksi[] }
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, month])
+  @@index([userId, month])
+}

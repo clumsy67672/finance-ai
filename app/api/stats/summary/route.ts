@@ -47,11 +47,26 @@ export async function GET(request: Request) {
   const totalIncome = income._sum.amount ?? 0;
   const totalExpense = expense._sum.amount ?? 0;
 
+  // Monthly pacing: compare spend-to-date against the calendar fraction.
+  const today = new Date();
+  const daysInMonth = new Date(monthDate.getFullYear(), monthDate.getMonth() + 1, 0).getDate();
+  const dayOfMonth = today.getDate();
+  const expectedByToday = Math.round((totalIncome * dayOfMonth) / daysInMonth);
+  const pacingPercent =
+    expectedByToday > 0 ? Math.round((totalExpense / expectedByToday) * 100) : 0;
+
   return NextResponse.json({
     month: range.gte.toISOString(),
     totalIncome,
     totalExpense,
     net: totalIncome - totalExpense,
-    count
+    count,
+    pacing: {
+      spent: totalExpense,
+      income: totalIncome,
+      expectedByToday,
+      pacingPercent,
+      overPace: pacingPercent > 115
+    }
   });
 }

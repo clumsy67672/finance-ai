@@ -1,5 +1,8 @@
 import ChatInput from '@/components/chat-input';
 import DashboardSummary from '@/components/dashboard-summary';
+import InsightBanner from '@/components/insight-banner';
+import MonthlyPacing from '@/components/monthly-pacing';
+import NeedsWantsBar from '@/components/needs-wants-bar';
 import CategoryChart from '@/components/charts/category-chart';
 import SpendingTrend from '@/components/charts/spending-trend';
 import RecentTransactions from '@/components/recent-transactions';
@@ -13,6 +16,11 @@ export default function OverviewPage() {
       <div className="grid gap-6 lg:grid-cols-2">
         <ChatInput />
         <DashboardSummary />
+      </div>
+      <InsightBanner />
+      <div className="grid gap-6 lg:grid-cols-2">
+        <MonthlyPacing />
+        <NeedsWantsBar />
       </div>
       <div className="grid gap-6 lg:grid-cols-2">
         <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">

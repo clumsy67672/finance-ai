@@ -25,8 +25,14 @@ Rules:
 - confidence: number between 0 and 1
 - Input is in Bahasa Indonesia — understand it as such
 - Fix typos in the note (e.g. "serviis" → "servis", "gacoan" → "Mie Gacoan") but keep the meaning
-Common item → category mappings:
-  IMPORTANT: rokok, sigaret, twiz → Other (NOT Food & Drink, NOT Entertainment)
+NUMBER NORMALIZATION (CRITICAL):
+- "amount" must ALWAYS be a bare integer, never a string like "40k"
+- k=1000, rb=1000, ribu=1000, jt=1000000, juta=1000000, m=1000000
+- 40k → 40000, 1.5jt → 1500000, 3m → 3000000
+CATEGORY GUARDRAILS (STRICT):
+  rokok, sigaret, twiz → Entertainment (NOT Food & Drink)
+  ayam mentah, ayam utuh, daging → Groceries (raw ingredients)
+  ayam goreng, ayam crispy, makanan matang → Food & Drink (cooked meals)
   minum, minuman → Food & Drink
   jajan, jajanan → Food & Drink
   gorengan → Food & Drink
@@ -52,7 +58,7 @@ Example: {"category":"Food & Drink","merchant":"Indomaret","source":"cash","tags
   };
 }
 
-async function callOmniRoute(body: object): Promise<string> {
+export async function callOmniRoute(body: object): Promise<string> {
   const baseUrl = process.env.OPENAI_BASE_URL || 'http://localhost:20128/v1';
   const apiKey = process.env.OPENAI_API_KEY || 'sk-local';
   const url = `${baseUrl.replace(/\/$/, '')}/chat/completions`;
@@ -316,21 +322,26 @@ Rules:
 - Input is in Bahasa Indonesia — understand slang, typos, and abbreviations
 - Split text into individual transactions by recognizing amounts, transition words (terus, lalu, lanjut), or natural boundaries
 - Fix typos in the note (e.g. "serviis" → "Servis", "gacoan" → "Mie Gacoan")
-- IMPORTANT: "rokok", "sigaret", "twiz" → MUST be "Other". NOT Food & Drink. NOT Entertainment.
-- "minum" → "Food & Drink"
-- "jajan", "jajanan", "gorengan" → "Food & Drink"
-- "bensin", "pertalite", "pertamax" → "Fuel / Gas"
-- "pulsa", "paket data", "paketan" → "Internet & Mobile"
-- "badminton", "shuttlecock", "naik gunung", "hiking" → "Sports / Outdoor"
-- "servis", "service" → "Self Care"
-- "kunci", "obeng", "tespen", "palu" → "Household Needs"
-- "indomaret", "alfamart" → "Groceries"
-- "pohong", "sossis", "gorengan" → "Groceries"
-- "bayar utang", "bayar hutang", "paylater", "kredivo" → "Loan / Debt"
-- "bayar badminton" → "Sports / Outdoor" (NOT Loan / Debt)
-- "tf", "transfer" → "Transfer (direction)" or follow context
-- "gaji", "salary", "honor" → "Salary / Income"
-- "beli" → "expense"
+NUMBER NORMALIZATION (CRITICAL):
+- "amount" must ALWAYS be a bare integer, never a string like "40k" — 40k → 40000, 1.5jt → 1500000, 3m → 3000000
+CATEGORY GUARDRAILS (STRICT):
+- rokok, sigaret, twiz → Entertainment (NOT Food & Drink)
+- ayam mentah, ayam utuh, daging → Groceries (raw ingredients)
+- ayam goreng, ayam crispy, makanan matang → Food & Drink (cooked meals)
+- minum → Food & Drink
+- jajan, jajanan, gorengan → Food & Drink
+- bensin, pertalite, pertamax → Fuel / Gas
+- pulsa, paket data, paketan → Internet & Mobile
+- badminton, shuttlecock, naik gunung, hiking → Sports / Outdoor
+- servis, service → Self Care
+- kunci, obeng, tespen, palu → Household Needs
+- indomaret, alfamart → Groceries
+- pohong, sossis, keju → Groceries
+- bayar utang, bayar hutang, paylater, kredivo → Loan / Debt
+- bayar badminton → Sports / Outdoor (NOT Loan / Debt)
+- tf, transfer → Transfer (direction) or follow context
+- gaji, salary, honor → Salary / Income
+- beli → expense
 - Entertainment is for movies, games, concerts, streaming — NOT for daily items`
       },
       {
