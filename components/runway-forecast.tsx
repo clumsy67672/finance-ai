@@ -34,7 +34,13 @@ export default function RunwayForecast() {
 
   const style =
     STYLES[data.status_proyeksi] ??
-    STYLES[data.status_proyeksi === 'Aman' ? 'Safe' : data.status_proyeksi === 'Defisit' ? 'Deficit' : 'Warning'] ??
+    STYLES[
+      String(data.status_proyeksi) === 'Aman'
+        ? 'Safe'
+        : String(data.status_proyeksi) === 'Defisit'
+          ? 'Deficit'
+          : 'Warning'
+    ] ??
     STYLES.Warning;
   const budget = Math.max(data.estimasi_pengeluaran_akhir, data.pengeluaran_saat_ini, 1);
   const spentPct = Math.min((data.pengeluaran_saat_ini / budget) * 100, 100);

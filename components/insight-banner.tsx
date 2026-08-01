@@ -93,7 +93,13 @@ export default function InsightBanner() {
 
   const style =
     STYLES[data.status_kesehatan] ??
-    STYLES[data.status_kesehatan === 'Sehat' ? 'Healthy' : data.status_kesehatan === 'Kritis' ? 'Critical' : 'Warning'] ??
+    STYLES[
+      String(data.status_kesehatan) === 'Sehat'
+        ? 'Healthy'
+        : String(data.status_kesehatan) === 'Kritis'
+          ? 'Critical'
+          : 'Warning'
+    ] ??
     STYLES.Warning;
 
   return (
