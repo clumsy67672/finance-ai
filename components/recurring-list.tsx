@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import useSWR, { mutate } from 'swr';
+import useSWR from 'swr';
 import { formatCurrency } from '@/lib/utils';
 import { TRANSACTION_CATEGORIES } from '@/lib/constants';
 
