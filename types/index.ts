@@ -20,6 +20,10 @@ export type TransactionResponse = {
 
 export type SummaryStats = {
   month: string;
+  period: string;
+  periodLabel: string;
+  rangeStart: string;
+  rangeEnd: string;
   totalIncome: number;
   totalExpense: number;
   net: number;

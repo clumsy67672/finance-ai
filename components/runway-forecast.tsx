@@ -2,9 +2,10 @@
 
 import useSWR from 'swr';
 import { formatCurrency } from '@/lib/utils';
+import { usePeriod } from './period-context';
 
 type Forecast = {
-  bulan: string;
+  periodLabel: string;
   pengeluaran_saat_ini: number;
   proyeksi_matematis: number;
   estimasi_pengeluaran_akhir: number;
@@ -16,11 +17,12 @@ type Forecast = {
 const STYLES: Record<Forecast['status_proyeksi'], { banner: string; badge: string; label: string }> = {
   Safe: { banner: 'border-emerald-200 bg-emerald-50', badge: 'bg-emerald-600 text-white', label: 'Safe' },
   Warning: { banner: 'border-amber-200 bg-amber-50', badge: 'bg-amber-500 text-white', label: 'Warning' },
-  Deficit: { banner: 'border-rose-200 bg-rose-50', badge: 'bg-rose-600 text-white', label: 'Deficit' }
+  Deficit: { banner: 'border-rose-200 bg-rose-50', badge: 'bg-rose-600 text-white', label: 'Deficit' },
 };
 
 export default function RunwayForecast() {
-  const { data } = useSWR<Forecast>('/api/stats/forecast');
+  const { period } = usePeriod();
+  const { data } = useSWR<Forecast>(`/api/stats/forecast?period=${period}`);
 
   if (!data) {
     return (
@@ -50,7 +52,7 @@ export default function RunwayForecast() {
     <div className={`rounded-2xl border p-5 shadow-sm ${style.banner}`}>
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-sm text-slate-500">Runway & forecast · {data.bulan}</p>
+          <p className="text-sm text-slate-500">Runway & forecast · {data.periodLabel}</p>
           <h2 className="text-lg font-semibold text-slate-900">Spending forecast</h2>
         </div>
         <span className={`rounded-full px-3 py-0.5 text-xs font-semibold uppercase tracking-wide ${style.badge}`}>

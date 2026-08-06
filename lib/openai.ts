@@ -36,6 +36,7 @@ CATEGORY GUARDRAILS (STRICT):
   minum, minuman → Food & Drink
   jajan, jajanan → Food & Drink
   gorengan → Food & Drink
+  tebs, tips, teh botol, teh, air putih, air mineral, es teh, kopi → Food & Drink (tebs = teh botol, NOT Entertainment)
   bensin, pertalite, pertamax, solar → Fuel / Gas
   pulsa, paket data, paketan → Internet & Mobile
   shuttlecock, badminton, kok → Sports / Outdoor
@@ -330,9 +331,11 @@ CATEGORY GUARDRAILS (STRICT):
 - ayam goreng, ayam crispy, makanan matang → Food & Drink (cooked meals)
 - minum → Food & Drink
 - jajan, jajanan, gorengan → Food & Drink
+- tebs, tips, teh botol, teh, air putih, air mineral, es teh, kopi → Food & Drink (tebs = teh botol, NOT Entertainment)
 - bensin, pertalite, pertamax → Fuel / Gas
 - pulsa, paket data, paketan → Internet & Mobile
 - badminton, shuttlecock, naik gunung, hiking → Sports / Outdoor
+- badminton member, bayar badminton, kok → Sports / Outdoor (membership/fees are Sports / Outdoor, NOT Entertainment)
 - servis, service → Self Care
 - kunci, obeng, tespen, palu → Household Needs
 - indomaret, alfamart → Groceries

@@ -3,9 +3,11 @@
 import useSWR from 'swr';
 import { formatCurrency } from '@/lib/utils';
 import type { SummaryStats } from '@/types';
+import { usePeriod } from './period-context';
 
 export default function MonthlyPacing() {
-  const { data } = useSWR<SummaryStats>('/api/stats/summary');
+  const { period } = usePeriod();
+  const { data } = useSWR<SummaryStats>(`/api/stats/summary?period=${period}`);
 
   if (!data?.pacing) return null;
 
@@ -19,7 +21,7 @@ export default function MonthlyPacing() {
     >
       <div className="mb-3 flex items-center justify-between">
         <div>
-          <p className="text-sm text-slate-500">Monthly pacing</p>
+          <p className="text-sm text-slate-500">Pacing</p>
           <h2 className="text-lg font-semibold text-slate-900">Burn rate</h2>
         </div>
         <span
@@ -36,11 +38,11 @@ export default function MonthlyPacing() {
           <>
             your <span className="font-semibold">{formatCurrency(income)}</span> income.{' '}
             {overPace
-              ? `You're ${pacingPercent}% past the expected ${formatCurrency(expectedByToday)} for this point in the month — slow down.`
-              : `You're at ${pacingPercent}% of the expected ${formatCurrency(expectedByToday)} for this point in the month.`}
+              ? `You're ${pacingPercent}% past the expected ${formatCurrency(expectedByToday)} for this point in the period — slow down.`
+              : `You're at ${pacingPercent}% of the expected ${formatCurrency(expectedByToday)} for this point in the period.`}
           </>
         ) : (
-          'no income recorded this month.'
+          'no income recorded this period.'
         )}
       </p>
     </div>

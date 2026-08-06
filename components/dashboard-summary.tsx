@@ -1,29 +1,43 @@
 'use client';
 
 import useSWR from 'swr';
-import { format } from 'date-fns';
 import { formatCurrency } from '@/lib/utils';
 import type { SummaryStats } from '@/types';
+import { usePeriod, PERIOD_OPTIONS } from './period-context';
 
 const CARDS = [
   { key: 'totalIncome', label: 'Income', accent: 'text-emerald-600' },
   { key: 'totalExpense', label: 'Expense', accent: 'text-rose-600' },
   { key: 'net', label: 'Net', accent: 'text-slate-900' },
-  { key: 'count', label: 'Transactions', accent: 'text-slate-600' }
+  { key: 'count', label: 'Transactions', accent: 'text-slate-600' },
 ] as const;
 
 export default function DashboardSummary() {
-  const { data: stats } = useSWR<SummaryStats>('/api/stats/summary');
-  const monthLabel = stats ? format(new Date(stats.month), 'MMMM yyyy') : '';
+  const { period, setPeriod } = usePeriod();
+  const { data: stats } = useSWR<SummaryStats>(`/api/stats/summary?period=${period}`);
 
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-      <div className="mb-4 flex items-center justify-between">
+      <div className="mb-4 flex items-start justify-between gap-3">
         <div>
-          <p className="text-sm text-slate-500">This month</p>
-          <p className="text-lg font-semibold text-slate-900">{monthLabel}</p>
+          <p className="text-sm text-slate-500">Summary</p>
+          <p className="text-lg font-semibold text-slate-900">{stats?.periodLabel ?? '…'}</p>
         </div>
-        <span className="text-xs uppercase tracking-wide text-slate-400">Overview</span>
+        <div className="flex flex-wrap gap-1 rounded-lg bg-slate-100 p-1">
+          {PERIOD_OPTIONS.map((o) => (
+            <button
+              key={o.key}
+              onClick={() => setPeriod(o.key)}
+              className={`rounded-md px-2 py-1 text-xs font-medium transition ${
+                period === o.key
+                  ? 'bg-white text-slate-900 shadow-sm'
+                  : 'text-slate-500 hover:text-slate-700'
+              }`}
+            >
+              {o.label}
+            </button>
+          ))}
+        </div>
       </div>
       <dl className="grid gap-4 sm:grid-cols-2">
         {CARDS.map((card) => (

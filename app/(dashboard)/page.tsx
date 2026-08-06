@@ -9,9 +9,11 @@ import SpendingTrend from '@/components/charts/spending-trend';
 import RecentTransactions from '@/components/recent-transactions';
 import TopExpenses from '@/components/top-expenses';
 import PendingBadge from '@/components/pending-badge';
+import { DashboardProvider } from '@/components/period-context';
 
 export default function OverviewPage() {
   return (
+    <DashboardProvider>
     <div className="space-y-8">
       <PendingBadge />
       <div className="grid gap-6 lg:grid-cols-2">
@@ -51,5 +53,6 @@ export default function OverviewPage() {
         </div>
       </div>
     </div>
+    </DashboardProvider>
   );
 }

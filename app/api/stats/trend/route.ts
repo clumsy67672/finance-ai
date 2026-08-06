@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
-import { subDays, formatISO, startOfWeek } from 'date-fns';
 import { prisma } from '@/lib/prisma';
 import { getCurrentUser } from '@/lib/auth';
+import { getPeriodRange, type Period } from '@/lib/periodRange';
 
 export async function GET(request: Request) {
   const user = await getCurrentUser();
@@ -10,47 +10,34 @@ export async function GET(request: Request) {
   }
 
   const { searchParams } = new URL(request.url);
-  const resolution = searchParams.get('resolution') === 'weekly' ? 'weekly' : 'daily';
+  const period = (searchParams.get('period') as Period) || 'payperiod';
+  const now = new Date();
+  const { rangeStart, rangeEnd } = getPeriodRange(period, now);
+  const range = { gte: rangeStart, lte: rangeEnd };
+
   const targetUserId = searchParams.get('userId');
-  const lookbackDays = resolution === 'weekly' ? 84 : 30;
-  const startDate = subDays(new Date(), lookbackDays);
+  const where: any = { occurredAt: range };
+  where.userId = user.role === 'admin' && targetUserId ? targetUserId : user.id;
 
-  const where: any = {
-    occurredAt: { gte: startDate }
-  };
-
-  if (user.role === 'admin' && targetUserId) {
-    where.userId = targetUserId;
-  } else {
-    where.userId = user.id;
-  }
-
-  const entries = await prisma.transaction.findMany({
+  // One grouped query: sum income/expense per calendar day across the window.
+  const grouped = await prisma.transaction.groupBy({
+    by: ['occurredAt', 'direction'],
     where,
-    select: { amount: true, occurredAt: true, direction: true },
-    orderBy: { occurredAt: 'asc' }
+    _sum: { amount: true },
   });
 
   const buckets: Record<string, { income: number; expense: number }> = {};
-
-  for (const entry of entries) {
-    const key =
-      resolution === 'weekly'
-        ? formatISO(startOfWeek(entry.occurredAt, { weekStartsOn: 1 }), { representation: 'date' })
-        : formatISO(entry.occurredAt, { representation: 'date' });
-    if (!buckets[key]) {
-      buckets[key] = { income: 0, expense: 0 };
-    }
-    if (entry.direction === 'income') {
-      buckets[key].income += entry.amount;
-    } else if (entry.direction === 'expense') {
-      buckets[key].expense += entry.amount;
-    }
+  for (const row of grouped) {
+    const dayKey = row.occurredAt.toISOString().slice(0, 10); // YYYY-MM-DD
+    if (!buckets[dayKey]) buckets[dayKey] = { income: 0, expense: 0 };
+    const amt = row._sum.amount ?? 0;
+    if (row.direction === 'income') buckets[dayKey].income += amt;
+    else if (row.direction === 'expense') buckets[dayKey].expense += amt;
   }
 
   const trend = Object.entries(buckets)
-    .map(([date, values]) => ({ date, ...values }))
-    .sort((a, b) => (a.date > b.date ? 1 : -1));
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([date, v]) => ({ date, income: v.income, expense: v.expense }));
 
-  return NextResponse.json({ resolution, trend });
+  return NextResponse.json({ resolution: 'daily', period, trend });
 }

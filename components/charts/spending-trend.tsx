@@ -9,14 +9,18 @@ import {
   PointElement,
   LineElement,
   Tooltip,
-  Legend
+  Legend,
 } from 'chart.js';
 import type { TrendPoint } from '@/types';
+import { usePeriod } from '../period-context';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Tooltip, Legend);
 
 export default function SpendingTrend() {
-  const { data } = useSWR<{ resolution: string; trend: TrendPoint[] }>('/api/stats/trend');
+  const { period } = usePeriod();
+  const { data } = useSWR<{ resolution: string; period: string; trend: TrendPoint[] }>(
+    `/api/stats/trend?period=${period}`
+  );
   const trend = data?.trend ?? [];
 
   if (!trend.length) {
@@ -31,26 +35,28 @@ export default function SpendingTrend() {
         data: trend.map((point) => point.income),
         borderColor: '#16a34a',
         backgroundColor: 'rgba(22,163,74,0.3)',
-        tension: 0.3
+        tension: 0.3,
+        spanGaps: true,
       },
       {
         label: 'Expense',
         data: trend.map((point) => point.expense),
         borderColor: '#dc2626',
         backgroundColor: 'rgba(220,38,38,0.3)',
-        tension: 0.3
-      }
-    ]
+        tension: 0.3,
+        spanGaps: true,
+      },
+    ],
   };
 
   const options = {
     responsive: true,
     plugins: {
-      legend: { position: 'bottom' as const }
+      legend: { position: 'bottom' as const },
     },
     scales: {
-      y: { beginAtZero: true }
-    }
+      y: { beginAtZero: true },
+    },
   };
 
   return <Line data={chartData} options={options} className="max-h-80" />;
