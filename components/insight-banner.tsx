@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import useSWR from 'swr';
+import { usePeriod } from './period-context';
 
 type Insight = {
   status_kesehatan: 'Healthy' | 'Warning' | 'Critical';
@@ -41,15 +42,16 @@ function Spinner() {
 }
 
 export default function InsightBanner() {
+  const { period } = usePeriod();
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { data, mutate } = useSWR<Insight & { cached?: boolean }>('/api/insights');
+  const { data, mutate } = useSWR<Insight & { cached?: boolean }>(`/api/insights?period=${period}`);
 
   const generate = async () => {
     setGenerating(true);
     setError(null);
     try {
-      const response = await fetch('/api/insights', { method: 'POST' });
+      const response = await fetch(`/api/insights?period=${period}`, { method: 'POST' });
       if (!response.ok) {
         const text = await response.text();
         throw new Error(text || 'Failed to generate insights');
@@ -69,7 +71,7 @@ export default function InsightBanner() {
         <div className="flex items-center justify-between">
           <div>
             <p className="text-sm text-slate-500">AI Insight</p>
-            <h2 className="text-lg font-semibold text-slate-900">Keuangan bulan ini</h2>
+            <h2 className="text-lg font-semibold text-slate-900">Financial health</h2>
           </div>
           <button
             type="button"
@@ -85,7 +87,7 @@ export default function InsightBanner() {
         <p className="mt-3 text-sm text-slate-500">
           {generating
             ? 'The local AI is analyzing your spending — this takes a few seconds.'
-            : 'Generate a health check on your monthly spending.'}
+            : 'Generate a health check on your spending.'}
         </p>
       </div>
     );

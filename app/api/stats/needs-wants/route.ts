@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
-import { startOfMonth, endOfMonth } from 'date-fns';
 import { prisma } from '@/lib/prisma';
 import { getCurrentUser } from '@/lib/auth';
+import { getPeriodRange, type Period } from '@/lib/periodRange';
 
 const NEEDS_CATEGORIES = new Set([
   'Groceries',
@@ -37,26 +37,15 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const monthParam = new URL(request.url).searchParams.get('month');
-  const now = new Date();
-  let monthDate = now;
-  if (monthParam) {
-    const [yearStr, monthStr] = monthParam.split('-');
-    monthDate = new Date(Number(yearStr), Number(monthStr) - 1, 1);
-  }
-  if (Number.isNaN(monthDate.getTime())) {
-    monthDate = now;
-  }
-  const range = {
-    gte: startOfMonth(monthDate),
-    lte: endOfMonth(monthDate)
-  };
+  const { searchParams } = new URL(request.url);
+  const period = (searchParams.get('period') as Period) || 'payperiod';
+  const { rangeStart, rangeEnd } = getPeriodRange(period, new Date());
+  const targetUserId = searchParams.get('userId');
 
   const where: any = {
-    occurredAt: range,
+    occurredAt: { gte: rangeStart, lte: rangeEnd },
     direction: 'expense'
   };
-  const targetUserId = new URL(request.url).searchParams.get('userId');
   if (user.role === 'admin' && targetUserId) {
     where.userId = targetUserId;
   } else {
@@ -80,7 +69,6 @@ export async function GET(request: Request) {
   }
 
   return NextResponse.json({
-    month: range.gte.toISOString(),
     needs,
     wants,
     other,

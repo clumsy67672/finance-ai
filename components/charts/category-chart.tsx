@@ -13,13 +13,15 @@ import {
   LineElement
 } from 'chart.js';
 import type { CategoryBreakdown } from '@/types';
+import { usePeriod } from '../period-context';
 
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, PointElement, LineElement);
 
 const COLORS = ['#0f172a', '#0284c7', '#22c55e', '#f97316', '#e11d48', '#a855f7', '#94a3b8'];
 
 export default function CategoryChart() {
-  const { data } = useSWR<{ categories: CategoryBreakdown[] }>('/api/stats/by-category');
+  const { period } = usePeriod();
+  const { data } = useSWR<{ categories: CategoryBreakdown[] }>(`/api/stats/by-category?period=${period}`);
   const categories = data?.categories ?? [];
 
   if (!categories.length) {

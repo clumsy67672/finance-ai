@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
-import { startOfMonth, endOfMonth } from 'date-fns';
 import { prisma } from '@/lib/prisma';
 import { getCurrentUser } from '@/lib/auth';
+import { getPeriodRange, type Period } from '@/lib/periodRange';
 
 export async function GET(request: Request) {
   const user = await getCurrentUser();
@@ -10,24 +10,14 @@ export async function GET(request: Request) {
   }
 
   const { searchParams } = new URL(request.url);
-  const monthParam = searchParams.get('month');
+  const period = (searchParams.get('period') as Period) || 'payperiod';
+  const { rangeStart, rangeEnd } = getPeriodRange(period, new Date());
   const targetUserId = searchParams.get('userId');
-  const [yearStr, monthStr] = monthParam ? monthParam.split('-') : [];
-  let baseDate = monthParam ? new Date(Number(yearStr), Number(monthStr) - 1, 1) : new Date();
-  if (Number.isNaN(baseDate.getTime())) {
-    baseDate = new Date();
-  }
 
   const where: any = {
-    direction: 'expense'
+    direction: 'expense',
+    occurredAt: { gte: rangeStart, lte: rangeEnd }
   };
-
-  if (monthParam && !Number.isNaN(baseDate.getTime())) {
-    where.occurredAt = {
-      gte: startOfMonth(baseDate),
-      lte: endOfMonth(baseDate)
-    };
-  }
 
   if (user.role === 'admin' && targetUserId) {
     where.userId = targetUserId;

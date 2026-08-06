@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server';
-import { startOfMonth, endOfMonth } from 'date-fns';
 import { prisma } from '@/lib/prisma';
 import { getCurrentUser } from '@/lib/auth';
 import { callOmniRoute } from '@/lib/openai';
 import { TRANSACTION_CATEGORIES } from '@/lib/constants';
+import { getPeriodRange, type Period } from '@/lib/periodRange';
 
 type InsightPayload = {
   status_kesehatan: 'Healthy' | 'Warning' | 'Critical';
@@ -11,18 +11,15 @@ type InsightPayload = {
   rekomendasi_aksi: string[];
 };
 
-function monthKey(): string {
-  const now = new Date();
-  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+// Cache key per (user, period) so insights match the dashboard toggle.
+function periodKey(period: Period): string {
+  const { rangeStart } = getPeriodRange(period, new Date());
+  return `${period}:${rangeStart.toISOString().slice(0, 10)}`;
 }
 
-async function generateInsight(userId: string, month: string): Promise<InsightPayload | null> {
-  const [yearStr, monthStr] = month.split('-');
-  const monthDate = new Date(Number(yearStr), Number(monthStr) - 1, 1);
-  const range = {
-    gte: startOfMonth(monthDate),
-    lte: endOfMonth(monthDate)
-  };
+async function generateInsight(userId: string, period: Period): Promise<InsightPayload | null> {
+  const { rangeStart, rangeEnd, periodLabel } = getPeriodRange(period, new Date());
+  const range = { gte: rangeStart, lte: rangeEnd };
 
   const [income, expense, byCategory] = await Promise.all([
     prisma.transaction.aggregate({
@@ -56,13 +53,14 @@ Return ONLY valid JSON, no markdown, no code fences:
 {"analisa_utama": "string (1-2 sentences, in English)", "rekomendasi_aksi": ["string", "..." ]}
 
 Rules:
+- All prose MUST be in English.
 - analisa_utama: mention the biggest category and the saving rate
 - rekomendasi_aksi: exactly 3 actionable, specific tips in English
 - Categories (EXACT strings): ${TRANSACTION_CATEGORIES.join(', ')}`
       },
       {
         role: 'user',
-        content: `Month: ${month}\nIncome: Rp${totalIncome}\nExpense: Rp${totalExpense}\nNet: Rp${totalIncome - totalExpense}\nBy category: ${categoryBreakdown || 'none'}`
+        content: `Period: ${periodLabel}\nIncome: Rp${totalIncome}\nExpense: Rp${totalExpense}\nNet: Rp${totalIncome - totalExpense}\nBy category: ${categoryBreakdown || 'none'}`
       }
     ],
     max_tokens: 512
@@ -92,9 +90,10 @@ export async function GET(request: Request) {
   if (!user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
-  const month = new URL(request.url).searchParams.get('month') || monthKey();
+  const period = (new URL(request.url).searchParams.get('period') as Period) || 'payperiod';
+  const key = periodKey(period);
   const cached = await prisma.insightCache.findUnique({
-    where: { userId_month: { userId: user.id, month } }
+    where: { userId_month: { userId: user.id, month: key } }
   });
   if (cached) {
     return NextResponse.json({ cached: true, ...(cached.payload as object) });
@@ -107,17 +106,18 @@ export async function POST(request: Request) {
   if (!user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
-  const month = new URL(request.url).searchParams.get('month') || monthKey();
+  const period = (new URL(request.url).searchParams.get('period') as Period) || 'payperiod';
+  const key = periodKey(period);
 
-  const insight = await generateInsight(user.id, month);
+  const insight = await generateInsight(user.id, period);
   if (!insight) {
     return NextResponse.json({ error: 'Insight generation failed' }, { status: 502 });
   }
 
   await prisma.insightCache.upsert({
-    where: { userId_month: { userId: user.id, month } },
+    where: { userId_month: { userId: user.id, month: key } },
     update: { payload: insight as unknown as object },
-    create: { userId: user.id, month, payload: insight as unknown as object }
+    create: { userId: user.id, month: key, payload: insight as unknown as object }
   });
 
   return NextResponse.json({ cached: false, ...insight });

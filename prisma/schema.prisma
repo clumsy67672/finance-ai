@@ -33,6 +33,8 @@ model User {
   createdAt    DateTime      @default(now())
   transactions Transaction[]
   sessions     Session[]
+  recurringTxs RecurringTx[]
+  budgets     Budget[]
 }
 
 model Session {
@@ -89,4 +91,35 @@ model InsightCache {
 
   @@unique([userId, month])
   @@index([userId, month])
+}
+
+model RecurringTx {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  label       String   @db.VarChar(120)
+  amount      Int
+  direction   Direction @default(expense)
+  category    String   @db.VarChar(64)
+  source      Source   @default(unknown)
+  note        String?  @db.VarChar(280)
+  dayOfMonth  Int      @default(25) // which day it posts each month
+  active      Boolean  @default(true)
+  lastPosted  DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId, active])
+}
+
+model Budget {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category  String   @db.VarChar(64)
+  amount    Int // target spend per pay-period (monthly)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, category])
 }

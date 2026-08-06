@@ -4,6 +4,7 @@ import InsightBanner from '@/components/insight-banner';
 import MonthlyPacing from '@/components/monthly-pacing';
 import NeedsWantsBar from '@/components/needs-wants-bar';
 import RunwayForecast from '@/components/runway-forecast';
+import BudgetProgress from '@/components/budget-progress';
 import CategoryChart from '@/components/charts/category-chart';
 import SpendingTrend from '@/components/charts/spending-trend';
 import RecentTransactions from '@/components/recent-transactions';
@@ -25,6 +26,7 @@ export default function OverviewPage() {
         <MonthlyPacing />
         <NeedsWantsBar />
       </div>
+      <BudgetProgress />
       <RunwayForecast />
       <div className="grid gap-6 lg:grid-cols-2">
         <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">

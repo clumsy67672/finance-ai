@@ -3,11 +3,13 @@
 import useSWR from 'swr';
 import { format } from 'date-fns';
 import { formatCurrency } from '@/lib/utils';
+import { usePeriod } from './period-context';
 
 export default function TopExpenses() {
-  const { data } = useSWR<{ expenses: Array<{ id: string; cleanNote: string; category: string; amount: number; occurredAt: string }> }>(
-    '/api/stats/top-expenses'
-  );
+  const { period } = usePeriod();
+  const { data } = useSWR<{
+    expenses: Array<{ id: string; cleanNote: string; category: string; amount: number; occurredAt: string }>;
+  }>(`/api/stats/top-expenses?period=${period}`);
   const expenses = data?.expenses ?? [];
 
   if (!expenses.length) {
