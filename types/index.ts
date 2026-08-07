@@ -35,6 +35,12 @@ export type SummaryStats = {
     pacingPercent: number;
     overPace: boolean;
   };
+  today?: {
+    income: number;
+    spent: number;
+    net: number;
+    count: number;
+  };
 };
 
 export type CategoryBreakdown = {

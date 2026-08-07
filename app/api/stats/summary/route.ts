@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { startOfMonth, endOfMonth, startOfYear, endOfYear, format } from 'date-fns';
+import { startOfMonth, endOfMonth, startOfYear, endOfYear, startOfDay, format } from 'date-fns';
 import { prisma } from '@/lib/prisma';
 import { getCurrentUser } from '@/lib/auth';
 
@@ -57,7 +57,7 @@ export async function GET(request: Request) {
     whereBase.userId = user.id;
   }
 
-  const [income, expense, count] = await Promise.all([
+  const [income, expense, count, todayIncome, todayExpense, todayCount] = await Promise.all([
     prisma.transaction.aggregate({
       where: { ...whereBase, direction: 'income' },
       _sum: { amount: true },
@@ -67,10 +67,26 @@ export async function GET(request: Request) {
       _sum: { amount: true },
     }),
     prisma.transaction.count({ where: whereBase }),
+    prisma.transaction.aggregate({
+      where: { ...whereBase, direction: 'income', occurredAt: { gte: startOfDay(now) } },
+      _sum: { amount: true },
+    }),
+    prisma.transaction.aggregate({
+      where: { ...whereBase, direction: 'expense', occurredAt: { gte: startOfDay(now) } },
+      _sum: { amount: true },
+    }),
+    prisma.transaction.count({ where: { ...whereBase, occurredAt: { gte: startOfDay(now) } } }),
   ]);
 
   const totalIncome = income._sum.amount ?? 0;
   const totalExpense = expense._sum.amount ?? 0;
+
+  const today = {
+    income: todayIncome._sum.amount ?? 0,
+    spent: todayExpense._sum.amount ?? 0,
+    net: (todayIncome._sum.amount ?? 0) - (todayExpense._sum.amount ?? 0),
+    count: todayCount,
+  };
 
   // Generic pacing: elapsed fraction of the selected period.
   let pacing: any = null;
@@ -101,5 +117,6 @@ export async function GET(request: Request) {
     net: totalIncome - totalExpense,
     count,
     pacing,
+    today,
   });
 }
