@@ -74,9 +74,9 @@ export default function RunwayForecast() {
           className="absolute inset-y-0 left-0 rounded-full border-2 border-dashed border-rose-400"
           style={{ width: `${projectedPct}%` }}
         />
-        {/* Budget line at 100% of income */}
+        {/* Budget line at 100% of income — thicker for visibility */}
         <div
-          className="absolute inset-y-0 w-0.5 bg-red-500"
+          className="absolute inset-y-0 z-10 w-[3px] rounded-full bg-red-600 ring-1 ring-white"
           style={{ left: `${Math.min(budgetPct, 100)}%` }}
           title={`Budget (income): ${formatCurrency(budget)}`}
         />
