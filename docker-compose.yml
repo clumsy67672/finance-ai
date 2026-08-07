@@ -15,6 +15,7 @@ services:
 
   web:
     build: .
+    restart: always
     depends_on:
       - postgres
     extra_hosts:
