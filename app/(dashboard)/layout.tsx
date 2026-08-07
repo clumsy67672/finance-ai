@@ -1,5 +1,6 @@
 import DashboardNav from '@/components/dashboard-nav';
 import LogoutButton from '@/components/logout-button';
+import BrandLogo from '@/components/brand-logo';
 import { requireUser } from '@/lib/auth';
 
 const NAV_ITEMS: { href: string; label: string; roles?: Array<'admin' | 'member'> }[] = [
@@ -15,10 +16,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
     <div className="min-h-screen bg-slate-50">
       <header className="border-b border-slate-200 bg-white">
         <div className="mx-auto flex max-w-6xl flex-col gap-4 px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <p className="text-xs uppercase tracking-wide text-slate-500">Chat Ledger</p>
-            <h1 className="text-2xl font-semibold text-slate-900">Family Finance</h1>
-          </div>
+          <BrandLogo />
           <div className="flex items-center gap-4">
             <div className="text-right">
               <p className="text-sm font-medium text-slate-900">{user.username}</p>
