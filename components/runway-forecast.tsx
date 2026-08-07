@@ -6,6 +6,7 @@ import { usePeriod } from './period-context';
 
 type Forecast = {
   periodLabel: string;
+  budget: number;
   pengeluaran_saat_ini: number;
   proyeksi_matematis: number;
   estimasi_pengeluaran_akhir: number;
@@ -44,9 +45,15 @@ export default function RunwayForecast() {
           : 'Warning'
     ] ??
     STYLES.Warning;
-  const budget = Math.max(data.estimasi_pengeluaran_akhir, data.pengeluaran_saat_ini, 1);
-  const spentPct = Math.min((data.pengeluaran_saat_ini / budget) * 100, 100);
-  const projectedPct = Math.min((data.estimasi_pengeluaran_akhir / budget) * 100, 100);
+
+  const budget = Math.max(data.budget, 0);
+  const scale = Math.max(budget, data.pengeluaran_saat_ini, data.estimasi_pengeluaran_akhir, 1);
+  const spentPct = (data.pengeluaran_saat_ini / scale) * 100;
+  const projectedPct = (data.estimasi_pengeluaran_akhir / scale) * 100;
+  // Where the real budget line sits, relative to the same scale
+  const budgetPct = (budget / scale) * 100;
+
+  const budgetLeft = budget - data.estimasi_pengeluaran_akhir;
 
   return (
     <div className={`rounded-2xl border p-5 shadow-sm ${style.banner}`}>
@@ -60,13 +67,35 @@ export default function RunwayForecast() {
         </span>
       </div>
 
-      {/* Runway bar: filled = spent, dotted = projected, red line = budget */}
+      {/* Bar: filled = spent, dashed = projected, vertical red line = budget (income) */}
       <div className="relative mt-4 h-3 w-full rounded-full bg-white/60">
         <div className="absolute inset-y-0 left-0 rounded-full bg-slate-900" style={{ width: `${spentPct}%` }} />
         <div
           className="absolute inset-y-0 left-0 rounded-full border-2 border-dashed border-rose-400"
           style={{ width: `${projectedPct}%` }}
         />
+        {/* Budget line at 100% of income */}
+        <div
+          className="absolute inset-y-0 w-0.5 bg-red-500"
+          style={{ left: `${Math.min(budgetPct, 100)}%` }}
+          title={`Budget (income): ${formatCurrency(budget)}`}
+        />
+      </div>
+
+      {/* Legend + percentages */}
+      <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-600">
+        <span className="flex items-center gap-1.5">
+          <span className="inline-block h-2.5 w-2.5 rounded-sm bg-slate-900" />
+          Spent {Math.round(spentPct)}%
+        </span>
+        <span className="flex items-center gap-1.5">
+          <span className="inline-block h-2.5 w-2.5 rounded-sm border-2 border-dashed border-rose-400" />
+          Projected {Math.round(projectedPct)}%
+        </span>
+        <span className="flex items-center gap-1.5">
+          <span className="inline-block h-3 w-0.5 bg-red-500" />
+          Budget {formatCurrency(budget)}
+        </span>
       </div>
 
       <div className="mt-4 grid grid-cols-3 gap-2 text-sm">
@@ -82,6 +111,13 @@ export default function RunwayForecast() {
           <p className="text-xs text-slate-500">AI estimate</p>
           <p className="font-semibold text-slate-900">{formatCurrency(data.estimasi_pengeluaran_akhir)}</p>
         </div>
+      </div>
+
+      {/* Budget left readout */}
+      <div className={`mt-3 rounded-xl px-3 py-2 text-sm font-medium ${budgetLeft >= 0 ? 'bg-white/70 text-emerald-700' : 'bg-white/70 text-rose-700'}`}>
+        {budgetLeft >= 0
+          ? `Budget left at period end: ${formatCurrency(budgetLeft)}`
+          : `Over budget by ${formatCurrency(-budgetLeft)} — cut spending so funds last until payday`}
       </div>
 
       <p className={`mt-3 text-sm ${style.label === 'Safe' ? 'text-emerald-700' : style.label === 'Warning' ? 'text-amber-700' : 'text-rose-700'}`}>

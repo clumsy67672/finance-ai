@@ -136,6 +136,7 @@ You MUST respond with ONLY a valid JSON object matching this exact schema, no ot
   return NextResponse.json({
     periodLabel,
     bulan: periodLabel, // legacy fallback for older clients
+    budget: incomeTotal, // period income = the 100% reference line
     pengeluaran_saat_ini: spent,
     proyeksi_matematis: mathProjection,
     estimasi_pengeluaran_akhir: aiEstimate,
