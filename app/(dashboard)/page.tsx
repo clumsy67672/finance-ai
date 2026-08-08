@@ -31,16 +31,14 @@ export default function OverviewPage() {
       <BudgetProgress />
       <RunwayForecast />
       <div className="grid gap-6 lg:grid-cols-2">
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div className="card">
           <div className="mb-4">
-            <p className="text-sm text-slate-500">Expense breakdown</p>
             <h2 className="text-lg font-semibold text-slate-900">By category</h2>
           </div>
           <CategoryChart />
         </div>
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div className="card">
           <div className="mb-4">
-            <p className="text-sm text-slate-500">Trend</p>
             <h2 className="text-lg font-semibold text-slate-900">Income vs Expense</h2>
           </div>
           <SpendingTrend />
@@ -48,9 +46,8 @@ export default function OverviewPage() {
       </div>
       <div className="grid gap-6 lg:grid-cols-2">
         <RecentTransactions />
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div className="card">
           <div className="mb-4">
-            <p className="text-sm text-slate-500">Largest spends</p>
             <h2 className="text-lg font-semibold text-slate-900">Top 10 expenses</h2>
           </div>
           <TopExpenses />

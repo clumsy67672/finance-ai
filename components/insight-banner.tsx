@@ -30,7 +30,7 @@ const STYLES: Record<Insight['status_kesehatan'], { banner: string; badge: strin
 
 function Spinner() {
   return (
-    <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
+    <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true">
       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
       <path
         className="opacity-75"
@@ -54,12 +54,12 @@ export default function InsightBanner() {
       const response = await fetch(`/api/insights?period=${period}`, { method: 'POST' });
       if (!response.ok) {
         const text = await response.text();
-        throw new Error(text || 'Failed to generate insights');
+        throw new Error(text || 'Failed to generate insights.');
       }
       const json = await response.json();
       await mutate(json, { revalidate: false });
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unknown error');
+      setError(err instanceof Error ? err.message : 'Something went wrong generating insights.');
     } finally {
       setGenerating(false);
     }
@@ -67,24 +67,16 @@ export default function InsightBanner() {
 
   if (!data || !data.status_kesehatan) {
     return (
-      <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+      <div className="card">
         <div className="flex items-center justify-between">
-          <div>
-            <p className="text-sm text-slate-500">AI Insight</p>
-            <h2 className="text-lg font-semibold text-slate-900">Financial health</h2>
-          </div>
-          <button
-            type="button"
-            onClick={generate}
-            disabled={generating}
-            className="inline-flex items-center gap-2 rounded-full bg-slate-900 px-4 py-1.5 text-sm font-medium text-white transition-colors hover:bg-slate-700 disabled:opacity-60"
-          >
+          <h2 className="text-lg font-semibold text-slate-900">Financial health</h2>
+          <button type="button" onClick={generate} disabled={generating} className="btn btn-primary px-4 py-1.5">
             {generating ? <Spinner /> : null}
-            {generating ? 'Generating...' : 'Generate Insights'}
+            {generating ? 'Analyzing…' : 'Generate insights'}
           </button>
         </div>
         {error ? <p className="mt-3 text-sm text-rose-600">{error}</p> : null}
-        <p className="mt-3 text-sm text-slate-500">
+        <p className="mt-3 text-sm text-slate-600">
           {generating
             ? 'The local AI is analyzing your spending — this takes a few seconds.'
             : 'Generate a health check on your spending.'}
@@ -105,19 +97,18 @@ export default function InsightBanner() {
     STYLES.Warning;
 
   return (
-    <div className={`rounded-2xl border p-5 shadow-sm ${style.banner}`}>
+    <div className={`rounded-xl border p-5 ${style.banner}`} role="status">
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-2">
-          <span className={`rounded-full px-3 py-0.5 text-xs font-semibold uppercase tracking-wide ${style.badge}`}>
+          <span className={`rounded-full px-3 py-0.5 text-xs font-semibold ${style.badge}`}>
             {style.label}
           </span>
-          <p className="text-sm text-slate-500">AI Insight</p>
         </div>
         <button
           type="button"
           onClick={generate}
           disabled={generating}
-          className="inline-flex items-center gap-2 rounded-full border border-slate-300 bg-white px-3 py-1 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-50 disabled:opacity-60"
+          className="btn btn-secondary px-3 py-1"
         >
           {generating ? <Spinner /> : null}
           Regenerate

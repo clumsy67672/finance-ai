@@ -27,10 +27,9 @@ export default function RunwayForecast() {
 
   if (!data) {
     return (
-      <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-        <p className="text-sm text-slate-500">Runway & forecast</p>
+      <div className="card">
         <h2 className="text-lg font-semibold text-slate-900">Spending forecast</h2>
-        <p className="mt-3 text-sm text-slate-500">Loading...</p>
+        <p className="mt-3 text-sm text-slate-500">Loading…</p>
       </div>
     );
   }
@@ -56,13 +55,12 @@ export default function RunwayForecast() {
   const budgetLeft = budget - data.estimasi_pengeluaran_akhir;
 
   return (
-    <div className={`rounded-2xl border p-5 shadow-sm ${style.banner}`}>
+    <div className={`rounded-xl border p-5 ${style.banner}`}>
       <div className="flex items-center justify-between">
-        <div>
-          <p className="text-sm text-slate-500">Runway & forecast · {data.periodLabel}</p>
-          <h2 className="text-lg font-semibold text-slate-900">Spending forecast</h2>
-        </div>
-        <span className={`rounded-full px-3 py-0.5 text-xs font-semibold uppercase tracking-wide ${style.badge}`}>
+        <h2 className="text-lg font-semibold text-slate-900">
+          Spending forecast <span className="text-sm font-normal text-slate-600">· {data.periodLabel}</span>
+        </h2>
+        <span className={`rounded-full px-3 py-0.5 text-xs font-semibold ${style.badge}`}>
           {style.label}
         </span>
       </div>
@@ -83,7 +81,7 @@ export default function RunwayForecast() {
       </div>
 
       {/* Legend + percentages */}
-      <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-600">
+      <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-700">
         <span className="flex items-center gap-1.5">
           <span className="inline-block h-2.5 w-2.5 rounded-sm bg-slate-900" />
           Spent {Math.round(spentPct)}%
@@ -100,32 +98,40 @@ export default function RunwayForecast() {
 
       <div className="mt-4 grid grid-cols-3 gap-2 text-sm">
         <div>
-          <p className="text-xs text-slate-500">Spent so far</p>
+          <p className="text-xs text-slate-600">Spent so far</p>
           <p className="font-semibold text-slate-900">{formatCurrency(data.pengeluaran_saat_ini)}</p>
         </div>
         <div>
-          <p className="text-xs text-slate-500">Math projection</p>
+          <p className="text-xs text-slate-600">Math projection</p>
           <p className="font-semibold text-slate-700">{formatCurrency(data.proyeksi_matematis)}</p>
         </div>
         <div>
-          <p className="text-xs text-slate-500">AI estimate</p>
+          <p className="text-xs text-slate-600">AI estimate</p>
           <p className="font-semibold text-slate-900">{formatCurrency(data.estimasi_pengeluaran_akhir)}</p>
         </div>
       </div>
 
       {/* Budget left readout */}
-      <div className={`mt-3 rounded-xl px-3 py-2 text-sm font-medium ${budgetLeft >= 0 ? 'bg-white/70 text-emerald-700' : 'bg-white/70 text-rose-700'}`}>
+      <div
+        className={`mt-3 rounded-lg px-3 py-2 text-sm font-medium ${
+          budgetLeft >= 0 ? 'bg-white/70 text-emerald-700' : 'bg-white/70 text-rose-700'
+        }`}
+      >
         {budgetLeft >= 0
           ? `Budget left at period end: ${formatCurrency(budgetLeft)}`
           : `Over budget by ${formatCurrency(-budgetLeft)} — cut spending so funds last until payday`}
       </div>
 
-      <p className={`mt-3 text-sm ${style.label === 'Safe' ? 'text-emerald-700' : style.label === 'Warning' ? 'text-amber-700' : 'text-rose-700'}`}>
+      <p
+        className={`mt-3 text-sm ${
+          style.label === 'Safe' ? 'text-emerald-700' : style.label === 'Warning' ? 'text-amber-700' : 'text-rose-700'
+        }`}
+      >
         {data.pesan_prediksi}
       </p>
 
       {data.pola_rutin_terdeteksi.length > 0 ? (
-        <ul className="mt-3 space-y-1 border-t border-slate-200/60 pt-3 text-xs text-slate-600">
+        <ul className="mt-3 space-y-1 border-t border-slate-200/60 pt-3 text-xs text-slate-700">
           {data.pola_rutin_terdeteksi.map((pattern) => (
             <li key={pattern}>• {pattern}</li>
           ))}

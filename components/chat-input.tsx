@@ -12,11 +12,12 @@ const REFRESH_KEYS = [
 ];
 
 type Mode = 'sync' | 'queue';
+type Status = { text: string; kind: 'success' | 'error' } | null;
 
 export default function ChatInput() {
   const { mutate } = useSWRConfig();
   const [message, setMessage] = useState('');
-  const [status, setStatus] = useState<string | null>(null);
+  const [status, setStatus] = useState<Status>(null);
   const [loading, setLoading] = useState(false);
   const [mode, setMode] = useState<Mode>('sync');
 
@@ -36,14 +37,20 @@ export default function ChatInput() {
       }
       setMessage('');
       if (mode === 'queue') {
-        setStatus('Saved to queue — will be processed when workstation is online');
+        setStatus({
+          text: 'Queued offline — will be saved when the workstation is online.',
+          kind: 'success'
+        });
         mutate('/api/queue/count');
       } else {
-        setStatus('Saved');
+        setStatus({ text: 'Saved', kind: 'success' });
         REFRESH_KEYS.forEach((key) => mutate(key));
       }
     } catch (error) {
-      setStatus(error instanceof Error ? error.message : 'Failed to save');
+      setStatus({
+        text: error instanceof Error ? error.message : 'Could not save.',
+        kind: 'error'
+      });
     } finally {
       setLoading(false);
     }
@@ -65,64 +72,64 @@ export default function ChatInput() {
     setMode((prev) => (prev === 'sync' ? 'queue' : 'sync'));
   };
 
+  const isQueue = mode === 'queue';
+
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-      <div className="flex items-center justify-between">
-        <label className="text-sm font-medium text-slate-600">Chat input</label>
+    <form onSubmit={handleSubmit} className="card space-y-4">
+      <div className="flex items-center justify-between gap-3">
+        <label className="text-sm font-medium text-slate-700" htmlFor="chat-entry">
+          {isQueue ? 'Offline entry (queued)' : 'Add an entry'}
+        </label>
         <button
           type="button"
           onClick={toggleMode}
-          className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-            mode === 'queue' ? 'bg-amber-500' : 'bg-slate-700'
-          }`}
+          aria-pressed={isQueue}
+          className="inline-flex items-center gap-2 text-xs font-medium text-slate-600 hover:text-slate-900"
         >
           <span
-            className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-              mode === 'queue' ? 'translate-x-6' : 'translate-x-1'
-            }`}
-          />
-          <span
-            className={`absolute text-[10px] font-semibold uppercase tracking-wider ${
-              mode === 'queue' ? 'left-1.5 text-white' : 'right-1.5 text-white'
+            className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
+              isQueue ? 'bg-amber-500' : 'bg-slate-700'
             }`}
           >
-            {mode === 'queue' ? 'Q' : 'S'}
+            <span
+              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                isQueue ? 'translate-x-[18px]' : 'translate-x-1'
+              }`}
+            />
           </span>
+          {isQueue ? 'Queue on' : 'Sync on'} · switch to {isQueue ? 'sync' : 'queue'}
         </button>
       </div>
       <div>
         <textarea
+          id="chat-input"
           value={message}
           onChange={(event) => setMessage(event.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder={mode === 'queue' ? 'teh 10k (masuk antrean)' : 'kopi 18k'}
-          className="mt-2 h-24 w-full rounded-2xl border border-slate-200 bg-slate-50 p-4 text-lg focus:border-slate-900 focus:bg-white focus:outline-none"
+          placeholder={isQueue ? 'teh 10k — saved offline' : 'kopi 18k'}
+          className="mt-2 h-24 w-full rounded-xl border border-slate-200 bg-slate-50 p-4 text-lg placeholder:text-slate-500 focus:border-slate-900 focus:bg-white focus:outline-none focus:ring-2 focus:ring-slate-900/10"
         />
+        <p className="mt-1.5 text-xs text-slate-500">
+          {isQueue
+            ? 'Saves here and posts once the workstation reconnects.'
+            : 'Press Enter to save. Shift+Enter for a new line.'}
+        </p>
       </div>
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <span
-            className={`text-xs font-medium uppercase tracking-wider ${
-              mode === 'queue' ? 'text-amber-600' : 'text-slate-400'
-            }`}
-          >
-            {mode === 'queue' ? 'Queue mode' : 'Sync mode'}
+        {isQueue && (
+          <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-700">
+            offline queue
           </span>
-          {mode === 'queue' && (
-            <span className="rounded bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">
-              pending
-            </span>
-          )}
-        </div>
-        <button
-          type="submit"
-          className="rounded-full bg-slate-900 px-6 py-2 text-sm font-semibold text-white disabled:opacity-60"
-          disabled={loading}
-        >
-          {loading ? 'Parsing…' : mode === 'queue' ? 'Queue' : 'Save'}
+        )}
+        <button type="submit" className="btn btn-primary ml-auto px-6 py-2" disabled={loading}>
+          {loading ? 'Parsing…' : isQueue ? 'Queue' : 'Save'}
         </button>
       </div>
-      {status && <p className="text-sm text-slate-600">{status}</p>}
+      {status && (
+        <p className={status.kind === 'error' ? 'text-sm text-rose-600' : 'text-sm text-slate-600'}>
+          {status.text}
+        </p>
+      )}
     </form>
   );
 }

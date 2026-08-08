@@ -20,7 +20,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
           <div className="flex items-center gap-4">
             <div className="text-right">
               <p className="text-sm font-medium text-slate-900">{user.username}</p>
-              <p className="text-xs uppercase tracking-wide text-slate-500">{user.role}</p>
+              <p className="text-xs text-slate-600">{user.role}</p>
             </div>
             <LogoutButton />
           </div>

@@ -19,13 +19,12 @@ export default function BudgetProgress() {
   const progress = data?.progress ?? [];
 
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+    <div className="card">
       <div className="mb-4">
-        <p className="text-sm text-slate-500">Budget vs actual</p>
         <h2 className="text-lg font-semibold text-slate-900">Category budgets</h2>
       </div>
       {progress.length === 0 ? (
-        <p className="text-sm text-slate-500">
+        <p className="text-sm text-slate-600">
           No budgets set yet. Add one in the Budgets tab to track spending per category.
         </p>
       ) : (
@@ -34,7 +33,7 @@ export default function BudgetProgress() {
             <li key={b.category}>
               <div className="flex items-center justify-between text-sm">
                 <span className="font-medium text-slate-900">{b.category}</span>
-                <span className={b.over ? 'text-rose-600 font-semibold' : 'text-slate-500'}>
+                <span className={b.over ? 'font-semibold text-rose-600' : 'text-slate-600'}>
                   {formatCurrency(b.spent)} / {formatCurrency(b.target)}
                 </span>
               </div>

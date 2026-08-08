@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import useSWR from 'swr';
-import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 type QueueCountResponse = {
   PENDING: number;
@@ -12,7 +12,6 @@ type QueueCountResponse = {
 };
 
 export default function PendingBadge() {
-  const router = useRouter();
   const [dismissed, setDismissed] = useState(false);
 
   const { data } = useSWR<QueueCountResponse>('/api/queue/count', {
@@ -24,30 +23,26 @@ export default function PendingBadge() {
   if (count <= 0 || dismissed) return null;
 
   return (
-    <button
-      type="button"
-      onClick={() => router.push('/transactions')}
-      className="flex w-full items-center justify-between rounded-2xl border border-amber-200 bg-amber-50 px-5 py-3 text-left shadow-sm transition-colors hover:bg-amber-100"
-    >
-      <span className="flex items-center gap-2 text-sm font-medium text-amber-800">
-        <span>📋</span>
-        <span>
-          {count} pending entr{count === 1 ? 'y' : 'ies'} — menunggu diproses worker
+    <div className="flex w-full items-center justify-between gap-3 rounded-xl border border-amber-200 bg-amber-50 px-5 py-3">
+      <Link
+        href="/transactions"
+        className="flex min-w-0 items-center gap-2 text-sm font-medium text-amber-800 hover:underline"
+      >
+        <span aria-hidden="true">⚠</span>
+        <span className="truncate">
+          {count} {count === 1 ? 'entry' : 'entries'} waiting to be processed
         </span>
-      </span>
+      </Link>
       <button
         type="button"
-        onClick={(e) => {
-          e.stopPropagation();
-          setDismissed(true);
-        }}
-        className="ml-4 rounded-full p-1 text-amber-500 transition-colors hover:bg-amber-200 hover:text-amber-700"
+        onClick={() => setDismissed(true)}
+        className="shrink-0 rounded-full p-1 text-amber-700 transition-colors hover:bg-amber-200"
         aria-label="Dismiss"
       >
         <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
         </svg>
       </button>
-    </button>
+    </div>
   );
 }

@@ -17,16 +17,16 @@ export default function TopExpenses() {
   }
 
   return (
-    <ul className="space-y-3">
+    <ul className="divide-y divide-slate-100">
       {expenses.map((item) => (
-        <li key={item.id} className="flex items-center justify-between rounded-xl border border-slate-200 bg-white p-3">
-          <div>
-            <p className="font-medium text-slate-900">{item.cleanNote}</p>
-            <p className="text-xs text-slate-500">
+        <li key={item.id} className="flex items-center justify-between gap-3 py-2.5">
+          <div className="min-w-0">
+            <p className="truncate font-medium text-slate-900">{item.cleanNote}</p>
+            <p className="text-xs text-slate-600">
               {item.category} · {format(new Date(item.occurredAt), 'dd MMM')}
             </p>
           </div>
-          <span className="text-sm font-semibold text-rose-600">-{formatCurrency(item.amount)}</span>
+          <span className="shrink-0 text-sm font-semibold text-rose-600">-{formatCurrency(item.amount)}</span>
         </li>
       ))}
     </ul>

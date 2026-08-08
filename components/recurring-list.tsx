@@ -62,10 +62,10 @@ export default function RecurringList() {
   };
 
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+    <div className="card">
       <div className="mb-4">
-        <p className="text-sm text-slate-500">Bills &amp; subscriptions</p>
         <h2 className="text-lg font-semibold text-slate-900">Recurring</h2>
+        <p className="mt-1 text-sm text-slate-600">Bills &amp; subscriptions.</p>
       </div>
 
       <div className="mb-4 grid grid-cols-2 gap-2">
@@ -73,20 +73,16 @@ export default function RecurringList() {
           value={label}
           onChange={(e) => setLabel(e.target.value)}
           placeholder="e.g. Listrik"
-          className="col-span-2 rounded-lg border border-slate-300 px-3 py-2 text-sm"
+          className="col-span-2 input"
         />
         <input
           value={amount}
           onChange={(e) => setAmount(e.target.value)}
           placeholder="amount"
           type="number"
-          className="rounded-lg border border-slate-300 px-3 py-2 text-sm"
+          className="input"
         />
-        <select
-          value={category}
-          onChange={(e) => setCategory(e.target.value)}
-          className="rounded-lg border border-slate-300 px-3 py-2 text-sm"
-        >
+        <select value={category} onChange={(e) => setCategory(e.target.value)} className="input">
           {TRANSACTION_CATEGORIES.map((c) => (
             <option key={c} value={c}>
               {c}
@@ -99,46 +95,33 @@ export default function RecurringList() {
           type="number"
           min={1}
           max={28}
-          className="rounded-lg border border-slate-300 px-3 py-2 text-sm"
+          className="input"
           title="Day of month"
         />
-        <button
-          onClick={add}
-          disabled={busy}
-          className="rounded-lg bg-slate-900 px-3 py-2 text-sm font-medium text-white disabled:opacity-60"
-        >
+        <button onClick={add} disabled={busy} className="btn btn-primary disabled:opacity-60">
           Add
         </button>
       </div>
 
       {items.length === 0 ? (
-        <p className="text-sm text-slate-500">No recurring items. Add bills to auto-post each period.</p>
+        <p className="text-sm text-slate-600">No recurring items. Add bills to auto-post each period.</p>
       ) : (
         <ul className="space-y-2">
           {items.map((item) => (
-            <li
-              key={item.id}
-              className="flex items-center justify-between rounded-xl border border-slate-200 p-3"
-            >
+            <li key={item.id} className="flex items-center justify-between rounded-lg border border-slate-200 p-3">
               <div>
-                <p className={`font-medium ${item.active ? 'text-slate-900' : 'text-slate-400 line-through'}`}>
+                <p className={`font-medium ${item.active ? 'text-slate-900' : 'text-slate-500 line-through'}`}>
                   {item.label}
                 </p>
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-slate-600">
                   {formatCurrency(item.amount)} · {item.category} · day {item.dayOfMonth}
                 </p>
               </div>
               <div className="flex gap-2">
-                <button
-                  onClick={() => toggle(item)}
-                  className="rounded-md border border-slate-300 px-2 py-1 text-xs text-slate-600 hover:bg-slate-50"
-                >
+                <button onClick={() => toggle(item)} className="btn btn-secondary px-2.5 py-1 text-xs">
                   {item.active ? 'Pause' : 'Resume'}
                 </button>
-                <button
-                  onClick={() => remove(item.id)}
-                  className="rounded-md border border-rose-200 px-2 py-1 text-xs text-rose-600 hover:bg-rose-50"
-                >
+                <button onClick={() => remove(item.id)} className="btn btn-danger-soft px-2.5 py-1 text-xs">
                   Delete
                 </button>
               </div>

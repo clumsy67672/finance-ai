@@ -12,15 +12,15 @@ export default async function LoginPage() {
 
   return (
     <section className="flex min-h-screen flex-col items-center justify-center gap-6 px-6">
-      <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
+      <div className="card !p-8 w-full max-w-md">
         <div className="mb-6 flex flex-col items-center gap-3 text-center">
           <BrandLogo />
-          <p className="text-sm uppercase text-slate-500 tracking-wide">Chat Ledger</p>
+          <p className="text-sm text-slate-600">Chat Ledger</p>
           <h1 className="text-2xl font-semibold text-slate-900">Welcome back</h1>
-          <p className="text-sm text-slate-500">Sign in to manage your shared ledger.</p>
+          <p className="text-sm text-slate-600">Sign in to manage your shared ledger.</p>
         </div>
         <AuthForm mode="login" />
-        <p className="mt-6 text-center text-sm text-slate-500">
+        <p className="mt-6 text-center text-sm text-slate-600">
           Need an account?{' '}
           <Link href="/register" className="font-medium text-slate-900">
             Register

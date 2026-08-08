@@ -47,6 +47,7 @@ function mergeInitialFilters(initial?: Partial<FilterState>): FilterState {
 export default function TransactionsView({ role, initialFilters }: Props) {
   const [filters, setFilters] = useState<FilterState>(() => mergeInitialFilters(initialFilters));
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [editError, setEditError] = useState<string | null>(null);
 
   const query = useMemo(() => {
     const params = new URLSearchParams();
@@ -80,6 +81,7 @@ export default function TransactionsView({ role, initialFilters }: Props) {
 
   const startEdit = (transaction: TransactionResponse) => {
     setEditingId(transaction.id);
+    setEditError(null);
     setFormValues({
       occurredAt: transaction.occurredAt.split('T')[0],
       amount: String(transaction.amount),
@@ -92,10 +94,10 @@ export default function TransactionsView({ role, initialFilters }: Props) {
     if (!editingId) return;
     const amount = Number(formValues.amount);
     if (!Number.isFinite(amount) || amount <= 0) {
-      alert('Amount must be a positive number');
+      setEditError('Amount must be a positive number.');
       return;
     }
-    await fetch(`/api/transactions/${editingId}`, {
+    const response = await fetch(`/api/transactions/${editingId}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -105,61 +107,50 @@ export default function TransactionsView({ role, initialFilters }: Props) {
         cleanNote: formValues.cleanNote
       })
     });
+    if (!response.ok) {
+      setEditError('Could not save changes. Try again.');
+      return;
+    }
+    setEditError(null);
     setEditingId(null);
     mutate();
   };
 
+  const buildExportParams = (format: 'csv' | 'jsonl') => {
+    const params = new URLSearchParams();
+    params.set('format', format);
+    if (filters.range) params.set('range', filters.range);
+    if (filters.range === 'month' && filters.month) params.set('month', filters.month);
+    if (filters.range === 'year' && filters.year) params.set('year', filters.year);
+    if (filters.category) params.set('category', filters.category);
+    if (filters.direction) params.set('direction', filters.direction);
+    if (filters.userId) params.set('userId', filters.userId);
+    return params.toString();
+  };
+
   return (
     <div className="space-y-6">
-      <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-        <div className="flex items-center justify-between">
+      <div className="card">
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <h2 className="text-lg font-semibold text-slate-900">Filters</h2>
           <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => {
-                const params = new URLSearchParams();
-                params.set('format', 'csv');
-                if (filters.range) params.set('range', filters.range);
-                if (filters.range === 'month' && filters.month) params.set('month', filters.month);
-                if (filters.range === 'year' && filters.year) params.set('year', filters.year);
-                if (filters.category) params.set('category', filters.category);
-                if (filters.direction) params.set('direction', filters.direction);
-                if (filters.userId) params.set('userId', filters.userId);
-                window.open(`/api/transactions/export?${params.toString()}`, '_blank');
-              }}
-              className="rounded-full border border-slate-300 px-4 py-1.5 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-50"
-            >
+            <button type="button" onClick={() => window.open(`/api/transactions/export?${buildExportParams('csv')}`, '_blank')} className="btn btn-secondary px-4 py-1.5">
               Export CSV
             </button>
-            <button
-              type="button"
-              onClick={() => {
-                const params = new URLSearchParams();
-                params.set('format', 'jsonl');
-                if (filters.range) params.set('range', filters.range);
-                if (filters.range === 'month' && filters.month) params.set('month', filters.month);
-                if (filters.range === 'year' && filters.year) params.set('year', filters.year);
-                if (filters.category) params.set('category', filters.category);
-                if (filters.direction) params.set('direction', filters.direction);
-                if (filters.userId) params.set('userId', filters.userId);
-                window.open(`/api/transactions/export?${params.toString()}`, '_blank');
-              }}
-              className="rounded-full border border-slate-300 px-4 py-1.5 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-50"
-            >
+            <button type="button" onClick={() => window.open(`/api/transactions/export?${buildExportParams('jsonl')}`, '_blank')} className="btn btn-secondary px-4 py-1.5">
               Export JSONL
             </button>
           </div>
         </div>
         <div className="mt-4 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <label className="text-sm text-slate-600">
+          <label className="text-sm text-slate-700">
             Range
             <select
               value={filters.range}
               onChange={(event) =>
                 setFilters((prev) => ({ ...prev, range: event.target.value as RangeFilter }))
               }
-              className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2"
+              className="mt-1 w-full input"
             >
               <option value="month">This month</option>
               <option value="year">Entire year</option>
@@ -167,18 +158,18 @@ export default function TransactionsView({ role, initialFilters }: Props) {
             </select>
           </label>
           {filters.range === 'month' && (
-            <label className="text-sm text-slate-600">
+            <label className="text-sm text-slate-700">
               Month
               <input
                 type="month"
                 value={filters.month}
                 onChange={(event) => setFilters((prev) => ({ ...prev, month: event.target.value }))}
-                className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2"
+                className="mt-1 w-full input"
               />
             </label>
           )}
           {filters.range === 'year' && (
-            <label className="text-sm text-slate-600">
+            <label className="text-sm text-slate-700">
               Year
               <input
                 type="number"
@@ -186,17 +177,17 @@ export default function TransactionsView({ role, initialFilters }: Props) {
                 max="2100"
                 value={filters.year}
                 onChange={(event) => setFilters((prev) => ({ ...prev, year: event.target.value }))}
-                className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2"
+                className="mt-1 w-full input"
                 placeholder="2025"
               />
             </label>
           )}
-          <label className="text-sm text-slate-600">
+          <label className="text-sm text-slate-700">
             Category
             <select
               value={filters.category}
               onChange={(event) => setFilters((prev) => ({ ...prev, category: event.target.value }))}
-              className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2"
+              className="mt-1 w-full input"
             >
               <option value="">All</option>
               {TRANSACTION_CATEGORIES.map((category) => (
@@ -206,12 +197,12 @@ export default function TransactionsView({ role, initialFilters }: Props) {
               ))}
             </select>
           </label>
-          <label className="text-sm text-slate-600">
+          <label className="text-sm text-slate-700">
             Type
             <select
               value={filters.direction}
               onChange={(event) => setFilters((prev) => ({ ...prev, direction: event.target.value }))}
-              className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2"
+              className="mt-1 w-full input"
             >
               <option value="">All</option>
               <option value="income">Income</option>
@@ -220,12 +211,12 @@ export default function TransactionsView({ role, initialFilters }: Props) {
             </select>
           </label>
           {role === 'admin' && (
-            <label className="text-sm text-slate-600">
+            <label className="text-sm text-slate-700">
               User
               <select
                 value={filters.userId}
                 onChange={(event) => setFilters((prev) => ({ ...prev, userId: event.target.value }))}
-                className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2"
+                className="mt-1 w-full input"
               >
                 <option value="">All users</option>
                 {users.map((u) => (
@@ -239,20 +230,22 @@ export default function TransactionsView({ role, initialFilters }: Props) {
         </div>
       </div>
 
-      <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+      <div className="card">
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-lg font-semibold text-slate-900">Transactions</h2>
-          <p className="text-sm text-slate-500">{transactions.length} rows</p>
+          <p className="text-sm text-slate-600">
+            {transactions.length} {transactions.length === 1 ? 'transaction' : 'transactions'}
+          </p>
         </div>
         <div className="overflow-x-auto">
           <table className="min-w-full text-sm">
             <thead>
-              <tr className="text-left text-xs uppercase tracking-wide text-slate-500">
+              <tr className="text-left text-xs uppercase tracking-wide text-slate-600">
                 <th className="p-2">Date</th>
                 <th className="p-2">Note</th>
                 <th className="p-2">Category</th>
                 <th className="p-2">Amount</th>
-                <th className="p-2">Actions</th>
+                <th className="p-2 text-right">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -264,7 +257,7 @@ export default function TransactionsView({ role, initialFilters }: Props) {
                         type="date"
                         value={formValues.occurredAt}
                         onChange={(event) => setFormValues((prev) => ({ ...prev, occurredAt: event.target.value }))}
-                        className="rounded-lg border border-slate-200 px-2 py-1"
+                        className="input px-2 py-1"
                       />
                     ) : (
                       format(new Date(transaction.occurredAt), 'dd MMM yyyy')
@@ -275,7 +268,7 @@ export default function TransactionsView({ role, initialFilters }: Props) {
                       <input
                         value={formValues.cleanNote}
                         onChange={(event) => setFormValues((prev) => ({ ...prev, cleanNote: event.target.value }))}
-                        className="w-full rounded-lg border border-slate-200 px-2 py-1"
+                        className="w-full input px-2 py-1"
                       />
                     ) : (
                       <span className="font-medium text-slate-900">{transaction.cleanNote}</span>
@@ -286,7 +279,7 @@ export default function TransactionsView({ role, initialFilters }: Props) {
                       <select
                         value={formValues.category}
                         onChange={(event) => setFormValues((prev) => ({ ...prev, category: event.target.value }))}
-                        className="rounded-lg border border-slate-200 px-2 py-1"
+                        className="input px-2 py-1"
                       >
                         {TRANSACTION_CATEGORIES.map((category) => (
                           <option key={category} value={category}>
@@ -304,7 +297,7 @@ export default function TransactionsView({ role, initialFilters }: Props) {
                         type="number"
                         value={formValues.amount}
                         onChange={(event) => setFormValues((prev) => ({ ...prev, amount: event.target.value }))}
-                        className="w-32 rounded-lg border border-slate-200 px-2 py-1"
+                        className="w-32 input px-2 py-1"
                       />
                     ) : (
                       <span className={transaction.direction === 'income' ? 'text-emerald-600' : 'text-rose-600'}>
@@ -315,24 +308,18 @@ export default function TransactionsView({ role, initialFilters }: Props) {
                   </td>
                   <td className="p-2 text-right">
                     {editingId === transaction.id ? (
-                      <div className="flex gap-2">
-                        <button
-                          onClick={submitEdit}
-                          className="rounded-full bg-slate-900 px-3 py-1 text-white"
-                        >
+                      <div className="flex justify-end gap-2">
+                        <button onClick={submitEdit} className="btn btn-primary px-3 py-1">
                           Save
                         </button>
-                        <button
-                          onClick={() => setEditingId(null)}
-                          className="rounded-full border border-slate-200 px-3 py-1"
-                        >
+                        <button onClick={() => { setEditingId(null); setEditError(null); }} className="btn btn-secondary px-3 py-1">
                           Cancel
                         </button>
                       </div>
                     ) : (
                       <button
                         onClick={() => startEdit(transaction)}
-                        className="rounded-full border border-slate-200 px-3 py-1"
+                        className="btn btn-secondary px-3 py-1"
                       >
                         Edit
                       </button>
@@ -343,6 +330,8 @@ export default function TransactionsView({ role, initialFilters }: Props) {
             </tbody>
           </table>
         </div>
+        {editError && <p className="mt-3 text-sm text-rose-600">{editError}</p>}
+        {!transactions.length && <p className="py-4 text-sm text-slate-500">No transactions match these filters.</p>}
       </div>
     </div>
   );

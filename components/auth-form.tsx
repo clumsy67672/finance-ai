@@ -37,35 +37,35 @@ export default function AuthForm({ mode }: { mode: 'login' | 'register' }) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 w-full max-w-sm">
+    <form onSubmit={handleSubmit} className="w-full max-w-sm space-y-4">
       <div>
-        <label className="block text-sm font-medium">Username</label>
+        <label className="block text-sm font-medium text-slate-900">Username</label>
         <input
           name="username"
-          className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 focus:border-slate-900 focus:outline-none"
+          className="mt-1 w-full input"
           placeholder="yourname"
           autoComplete="username"
           required
         />
       </div>
       <div>
-        <label className="block text-sm font-medium">Password</label>
+        <label className="block text-sm font-medium text-slate-900">Password</label>
         <input
           type="password"
           name="password"
-          className="mt-1 w-full rounded-md border border-slate-300 px-3 py-2 focus:border-slate-900 focus:outline-none"
+          className="mt-1 w-full input"
           placeholder="••••••••"
           autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
           required
         />
       </div>
-      {error ? <p className="text-sm text-red-600">{error}</p> : null}
+      {error ? <p className="text-sm text-rose-600">{error}</p> : null}
       <button
         type="submit"
-        className="w-full rounded-md bg-slate-900 py-2 text-white font-semibold disabled:opacity-60"
+        className="btn btn-primary w-full py-2"
         disabled={loading}
       >
-        {loading ? 'Please wait...' : mode === 'login' ? 'Sign In' : 'Create Account'}
+        {loading ? 'Please wait…' : mode === 'login' ? 'Sign In' : 'Create Account'}
       </button>
     </form>
   );

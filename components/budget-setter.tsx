@@ -30,18 +30,14 @@ export default function BudgetSetter() {
   };
 
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+    <div className="card">
       <div className="mb-4">
-        <p className="text-sm text-slate-500">Monthly target per category</p>
         <h2 className="text-lg font-semibold text-slate-900">Set budgets</h2>
+        <p className="mt-1 text-sm text-slate-600">Monthly target per category.</p>
       </div>
 
       <div className="mb-4 grid grid-cols-3 gap-2">
-        <select
-          value={category}
-          onChange={(e) => setCategory(e.target.value)}
-          className="rounded-lg border border-slate-300 px-3 py-2 text-sm"
-        >
+        <select value={category} onChange={(e) => setCategory(e.target.value)} className="input">
           {TRANSACTION_CATEGORIES.map((c) => (
             <option key={c} value={c}>
               {c}
@@ -53,32 +49,23 @@ export default function BudgetSetter() {
           onChange={(e) => setAmount(e.target.value)}
           placeholder="amount"
           type="number"
-          className="rounded-lg border border-slate-300 px-3 py-2 text-sm"
+          className="input"
         />
-        <button
-          onClick={save}
-          className="rounded-lg bg-slate-900 px-3 py-2 text-sm font-medium text-white"
-        >
+        <button onClick={save} className="btn btn-primary">
           Set
         </button>
       </div>
 
       {budgets.length === 0 ? (
-        <p className="text-sm text-slate-500">No budgets set. Set a monthly target above.</p>
+        <p className="text-sm text-slate-600">No budgets set. Set a monthly target above.</p>
       ) : (
         <ul className="space-y-2">
           {budgets.map((b) => (
-            <li
-              key={b.category}
-              className="flex items-center justify-between rounded-xl border border-slate-200 p-3"
-            >
+            <li key={b.category} className="flex items-center justify-between rounded-lg border border-slate-200 p-3">
               <span className="font-medium text-slate-900">{b.category}</span>
               <div className="flex items-center gap-3">
                 <span className="text-sm text-slate-600">{formatCurrency(b.amount)}</span>
-                <button
-                  onClick={() => remove(b.category)}
-                  className="rounded-md border border-rose-200 px-2 py-1 text-xs text-rose-600 hover:bg-rose-50"
-                >
+                <button onClick={() => remove(b.category)} className="btn btn-danger-soft px-2.5 py-1 text-xs">
                   Delete
                 </button>
               </div>

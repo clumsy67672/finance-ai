@@ -15,10 +15,9 @@ export default function NeedsWantsBar() {
 
   if (!data || data.total === 0) {
     return (
-      <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-        <p className="text-sm text-slate-500">Needs vs Wants</p>
+      <div className="card">
         <h2 className="text-lg font-semibold text-slate-900">Spending balance</h2>
-        <p className="mt-3 text-sm text-slate-500">Add transactions to see the split.</p>
+        <p className="mt-3 text-sm text-slate-500">Add transactions to see the needs vs wants split.</p>
       </div>
     );
   }
@@ -28,9 +27,8 @@ export default function NeedsWantsBar() {
   const otherPercent = 100 - needsPercent - wantsPercent;
 
   return (
-    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+    <div className="card">
       <div className="mb-4">
-        <p className="text-sm text-slate-500">Needs vs Wants</p>
         <h2 className="text-lg font-semibold text-slate-900">Spending balance</h2>
       </div>
       <div className="flex h-3 w-full overflow-hidden rounded-full bg-slate-100">
@@ -63,7 +61,7 @@ export default function NeedsWantsBar() {
             <span className="font-medium text-slate-900">Needs</span>
           </div>
           <p className="mt-1 text-slate-600">{formatCurrency(data.needs)}</p>
-          <p className="text-xs text-slate-400">{needsPercent}%</p>
+          <p className="text-xs text-slate-600">{needsPercent}%</p>
         </div>
         <div>
           <div className="flex items-center gap-1.5">
@@ -71,7 +69,7 @@ export default function NeedsWantsBar() {
             <span className="font-medium text-slate-900">Wants</span>
           </div>
           <p className="mt-1 text-slate-600">{formatCurrency(data.wants)}</p>
-          <p className="text-xs text-slate-400">{wantsPercent}%</p>
+          <p className="text-xs text-slate-600">{wantsPercent}%</p>
         </div>
         <div>
           <div className="flex items-center gap-1.5">
@@ -79,7 +77,7 @@ export default function NeedsWantsBar() {
             <span className="font-medium text-slate-900">Other</span>
           </div>
           <p className="mt-1 text-slate-600">{formatCurrency(data.other)}</p>
-          <p className="text-xs text-slate-400">{otherPercent}%</p>
+          <p className="text-xs text-slate-600">{otherPercent}%</p>
         </div>
       </div>
     </div>
