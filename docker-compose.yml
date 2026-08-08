@@ -23,7 +23,7 @@ services:
     environment:
       DATABASE_URL: postgresql://finance:7wu394pejCknEgaFIXXkwbJp@postgres:5432/finance_ai?schema=public
       OPENAI_API_KEY: ${OPENAI_API_KEY}
-      OPENAI_BASE_URL: http://host.docker.internal:11434/v1
+      OPENAI_BASE_URL: ${OPENAI_BASE_URL:-http://host.docker.internal:11434/v1}
       OPENAI_MODEL: ${OPENAI_MODEL:-qwen2.5:3b}
       SESSION_SECRET: ${SESSION_SECRET}
     ports:

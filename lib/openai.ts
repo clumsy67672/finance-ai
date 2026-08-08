@@ -30,6 +30,8 @@ NUMBER NORMALIZATION (CRITICAL):
 - k=1000, rb=1000, ribu=1000, jt=1000000, juta=1000000, m=1000000
 - 40k → 40000, 1.5jt → 1500000, 3m → 3000000
 CATEGORY GUARDRAILS (STRICT):
+  urunan, urunan futsal, iuran → Sports / Outdoor or Other (cleanNote MUST stay "Urunan"/"Urunan Futsal"; never "Urusan"/"Servis")
+  korek, korek api → Entertainment (cleanNote MUST stay "Korek"; never invent "Koreksai")
   rokok, sigaret, twiz → Entertainment (NOT Food & Drink, NOT Loan / Debt)
   ayam mentah, ayam utuh, daging → Groceries (raw ingredients)
   ayam goreng, ayam crispy, makanan matang → Food & Drink (cooked meals)
@@ -327,6 +329,8 @@ Rules:
 NUMBER NORMALIZATION (CRITICAL):
 - "amount" must ALWAYS be a bare integer, never a string like "40k" — 40k → 40000, 1.5jt → 1500000, 3m → 3000000
 CATEGORY GUARDRAILS (STRICT):
+- urunan, urunan futsal, iuran, janji → Sports / Outdoor or Other (urunan = group contribution, often futsal; cleanNote MUST stay "Urunan" or "Urunan Futsal" — do NOT rename to "Urusan", "Servis", or anything else)
+- korek, korek api, lighter → Entertainment (matches/lighter for cigarettes; cleanNote MUST stay "Korek" — do NOT invent "Koreksai")
 - rokok, sigaret, twiz → Entertainment (NOT Food & Drink, NOT Loan / Debt)
 - ayam mentah, ayam utuh, daging → Groceries (raw ingredients)
 - ayam goreng, ayam crispy, makanan matang → Food & Drink (cooked meals)
