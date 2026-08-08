@@ -74,8 +74,12 @@ on a colored banner is never washed-out gray-on-color.
 - **Card inset:** `p-5` (20px) internally; cards themselves are `space-y-N` children.
 - **Main wrapper:** `mx-auto max-w-6xl px-6` — 60px side gutters on desktop,
   consistent from header → main.
-- **Responsive grids:** `grid gap-6 lg:grid-cols-2` for peer modules;
-  `grid gap-4 sm:grid-cols-2 lg:grid-cols-4` for KPI description lists.
+- **Responsive grids:** `grid gap-6 lg:grid-cols-2` for peer modules.
+  KPI tiles within `DashboardSummary` use **`grid-cols-2` (2×2)** — never 4-across.
+  The summary sits inside the half-width right column (it shares a row with the
+  chat input), so `lg:grid-cols-4` left only ~94px of usable width per tile and
+  clipped realistic amounts (a longstanding chop on Income). 2×2 keeps each tile
+  ~264px wide so the full value always fits on one line.
 
 ### `.card` primitive (single source of truth)
 ```css

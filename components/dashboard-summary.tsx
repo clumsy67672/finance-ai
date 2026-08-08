@@ -39,7 +39,7 @@ export default function DashboardSummary() {
           ))}
         </div>
       </div>
-      <dl className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <dl className="grid grid-cols-2 gap-3">
         {CARDS.map((card) => {
           const value = stats
             ? card.key === 'count'
@@ -56,10 +56,10 @@ export default function DashboardSummary() {
           return (
             <div
               key={card.key}
-              className="flex min-w-0 flex-col rounded-lg border border-slate-200 bg-white py-3 pl-4 pr-3"
+              className="flex min-w-0 flex-col rounded-lg border border-slate-200 bg-white px-4 py-3"
             >
               <dt className="truncate text-xs font-medium text-slate-600">{label}</dt>
-              <dd className="mt-0.5 min-w-0 break-words text-xl font-semibold leading-tight tabular-nums">
+              <dd className="mt-0.5 whitespace-nowrap text-lg font-semibold leading-tight tabular-nums">
                 <span className={value === null ? 'text-slate-400' : card.accent}>{display}</span>
               </dd>
             </div>
