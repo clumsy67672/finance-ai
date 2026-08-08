@@ -14,11 +14,15 @@ component conventions) at the end of the polish pass.
 > the enemy; every figure must be readable at 90‑100% zoom with one glance at a
 > red/green status. No dark mode needed — the room is bright.*
 
-→ **Light, restrained.** A warm-gray surface is *avoided* (that's the saturated
+→ **Light.** A warm-gray surface is *avoided* (that's the saturated
 2026 AI default). The surface here is true off-white (`bg-white` / surface at
 `L≈0.985`, C≈0) with a **single committed accent family**: money-red
 (`rose`) and money-green (`emerald`). All surface structure comes from border +
 subtle tint, never from a warm near-white bg.
+
+**Dark is opt-in, not a default.** A header toggle (`components/theme-toggle.tsx`)
+switches `<html>.dark` to a dark theme for low-light use; light remains the
+surfaced default. Mechanism is in §9.
 
 ---
 
@@ -149,11 +153,24 @@ acceptable here because they're tags, not containers.
 
 ## 5. Motion & reduced-motion
 
-- `@media (prefers-reduced-motion: reduce)` in `globals.css` collapses all
-  animations/transitions to `0.001ms` and forces `scroll-behavior: auto` — ships
-  with zero animations today so there's nothing to regress.
-- No decorative transitions on layout properties. The only motion in the system
-  is the toggle switch slide + button hover color (opacity/transform only).
+Motion is **intentional and sparse** — it enhances already-visible content, never
+gates it. Every animation is opacity/transform only (no layout properties),
+uses an ease-out exponential curve, and collapses to 0ms under
+`prefers-reduced-motion` (the guard in `globals.css` also zeros `animation-delay`
+so no element sits hidden during a stagger).
+
+- **KPI count-up** (`components/count-up.tsx`, `useCountUp`): KPI figures slide
+  up from 0 to their value over ~750ms with ease-out-quart. Skips instantly when
+  the target is `0` or the user prefers reduced motion. Re-fires when the period
+  changes (each new amount animates). Hooks used per-tile via a `KpiTile`
+  subcomponent to satisfy rules-of-hooks.
+- **KPI tiles** `.tile-enter` / `@keyframes rise-in`: 8px rise + fade, staggered
+  per tile at 70ms (a legit single-list stagger).
+- **Chart cards** `.fade-enter` / `@keyframes fade-in`: soft 420ms opacity fade
+  (data-driven surfaces only — not a blanket reveal on every section).
+
+Ease curve used: `cubic-bezier(0.22, 1, 0.36, 1)` (≈ ease-out-quart). No bounce,
+no elastic, no stagger on unrelated sections. Chart.js itself is left unanimated.
 
 ---
 
@@ -187,7 +204,36 @@ acceptable here because they're tags, not containers.
 
 ---
 
-## 9. File map (where the system lives)
+## 9. Dark theme (opt-in)
+
+A header **`ThemeToggle`** swaps `<html>.dark` on/off, persisted to
+`localStorage['ff-theme']` (falls back to `prefers-color-scheme`, and stays in
+sync across tabs). A tiny inline script in `app/layout.tsx` `<head>` applies the
+saved/system theme **before hydration** so there's no light→dark flash.
+`tailwind.config.ts` sets `darkMode: "class"`.
+
+**Override-layer strategy.** Components use Tailwind utilities directly, so instead
+of sprinkling `dark:` into ~20 files, `globals.css` ships a single `.dark { … }`
+override layer that remaps the app's small, shared vocabulary in one place:
+- Surfaces: `bg-white`→`slate-800` (cards/tiles), `bg-slate-50`→`slate-900` (page),
+  `bg-slate-100`→`slate-700` (inputs/segments).
+- Text: `slate-900`→`slate-100`, `700/600`→`slate-300`, `500`→`slate-400`,
+  `400`→`slate-500`, tuned to hold ≥4.5:1 body/ink and ~3.5:1+ muted on slate-800.
+- Borders/dividers/placeholder + focused `input`.
+- Buttons **invert** primary ink (slate-100 bg + slate-900 text) so the primary CTA
+  stays high-contrast in dark; secondary/danger become outlined.
+- Status tints (50/200/700) push to their 950/900/100 ends; translucent budget
+  readouts go opaque slate.
+
+Chart.js keeps its own colors (multicolor pie + emerald/rose trend lines stay
+legible on slate-800), so no chart code changes.
+
+**Why not dark-by-default:** the physical scene is a bright kitchen table, and
+clearly-sized ink on slate is light's native strength. Light is the honest
+default; dark is the low-light fallback, cost-free via the toggle, and neither
+theme is forced on the user.
+
+## 10. File map (where the system lives)
 
 | Concern | Location |
 |---|---|
@@ -210,6 +256,7 @@ acceptable here because they're tags, not containers.
 | budgets page | `components/budget-setter.tsx`, `components/budget-progress.tsx`, `app/(dashboard)/budgets/page.tsx` |
 | recurring | `components/recurring-list.tsx` |
 | pending badge | `components/pending-badge.tsx` |
+| theme toggle | `components/theme-toggle.tsx` (+ `tailwind.config.ts` `darkMode`, `app/layout.tsx` no-flash script) |
 | auth pages | `app/(auth)/login/page.tsx`, `app/(auth)/register/page.tsx`, `components/auth-form.tsx` |
 | brand mark | `components/brand-logo.tsx` |
 

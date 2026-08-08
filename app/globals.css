@@ -93,6 +93,79 @@ body {
   animation: fade-in 420ms ease-out both;
 }
 
+/* ==========================================================================
+   Dark theme (class strategy: `.dark` on <html>, toggled by ThemeToggle).
+   One override layer remaps the app's small, shared slate/status vocabulary in a
+   single place instead of sprinkling `dark:` across every component. Values are
+   tuned to hold ≥4.5:1 for body/ink and ~3.5:1+ for muted text on slate-800.
+   ========================================================================== */
+.dark {
+  color-scheme: dark;
+}
+
+/* Surfaces */
+.dark .bg-white { background-color: #1e293b; }   /* slate-800 — cards, tiles, strip */
+.dark .bg-slate-50 { background-color: #0f172a; } /* slate-900 — page background */
+.dark .bg-slate-100 { background-color: #27364a; } /* slate-700 — inputs, segmented track */
+.dark .bg-slate-200 { background-color: #334155; }
+.dark .bg-slate-300 { background-color: #475569; }
+
+/* Text — lift toward the light end of the ramp for contrast on slate-800 */
+.dark .text-slate-900 { color: #f1f5f9; }
+.dark .text-slate-700 { color: #cbd5e1; }
+.dark .text-slate-600 { color: #cbd5e1; }
+.dark .text-slate-500 { color: #94a3b8; }
+.dark .text-slate-400 { color: #64748b; }
+
+/* Borders & active ink */
+.dark .border-slate-100 { border-color: #334155; }
+.dark .border-slate-200 { border-color: #334155; }
+.dark .border-slate-300 { border-color: #475569; }
+.dark .border-slate-900 { border-color: #e2e8f0; } /* nav underline, active strokes */
+.dark :is(.divide-slate-100, .divide-slate-200) > :not([hidden]) ~ :not([hidden]) {
+  border-color: #334155;
+}
+
+/* Placeholders */
+.dark .placeholder\:text-slate-500::placeholder { color: #94a3b8; }
+
+/* Buttons — invert the primary "ink" button to light-on-dark, secondary to outline */
+.dark .btn-primary { background-color: #e2e8f0; color: #0f172a; }
+.dark .btn-primary:hover:not(:disabled) { background-color: #cbd5e1; }
+.dark .btn-secondary { border-color: #475569; background-color: transparent; color: #cbd5e1; }
+.dark .btn-secondary:hover:not(:disabled) { background-color: #1e293b; }
+.dark .btn-danger-soft { border-color: #7f1d1d; background-color: transparent; color: #fda4af; }
+.dark .btn-danger-soft:hover:not(:disabled) { background-color: #450a0a; }
+
+/* Inputs */
+.dark .input { background-color: #0f172a; border-color: #334155; color: #f1f5f9; }
+.dark .input::placeholder { color: #64748b; }
+
+/* Status tints — the 50/200/700 family pushed toward their 950/900/100 end */
+.dark .bg-emerald-50 { background-color: #022c22; }
+.dark .border-emerald-200 { border-color: #065f46; }
+.dark .text-emerald-700 { color: #a7f3d0; }
+.dark .bg-emerald-100 { background-color: #064e3b; }
+.dark .text-emerald-800 { color: #a7f3d0; }
+.dark .bg-amber-50 { background-color: #451a03; }
+.dark .border-amber-200 { border-color: #92400e; }
+.dark .text-amber-700 { color: #fde68a; }
+.dark .text-amber-800 { color: #fde68a; }
+.dark .bg-amber-100 { background-color: #78350f; }
+.dark .text-amber-500, .dark .text-amber-600 { color: #fcd34d; }
+.dark .bg-rose-50 { background-color: #4c0519; }
+.dark .border-rose-200 { border-color: #9f1239; }
+.dark .text-rose-700 { color: #fecdd3; }
+.dark .text-rose-800 { color: #fecdd3; }
+.dark .bg-rose-100 { background-color: #4c0519; }
+
+/* Translucent readouts (runway budget-left chip) */
+.dark .bg-white\/60 { background-color: rgba(15, 23, 42, 0.6); }
+.dark .bg-white\/70 { background-color: rgba(15, 23, 42, 0.7); }
+
+/* Charts are script-rendered (Chart.js) and keep their own colors; the multi-color
+   pie and emerald/rose trend lines stay legible on slate-800 without changes. */
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

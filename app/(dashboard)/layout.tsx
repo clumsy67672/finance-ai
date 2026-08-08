@@ -1,6 +1,7 @@
 import DashboardNav from '@/components/dashboard-nav';
 import LogoutButton from '@/components/logout-button';
 import BrandLogo from '@/components/brand-logo';
+import ThemeToggle from '@/components/theme-toggle';
 import { requireUser } from '@/lib/auth';
 
 const NAV_ITEMS: { href: string; label: string; roles?: Array<'admin' | 'member'> }[] = [
@@ -18,6 +19,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
         <div className="mx-auto flex max-w-6xl flex-col gap-4 px-6 py-5 sm:flex-row sm:items-center sm:justify-between">
           <BrandLogo />
           <div className="flex items-center gap-4">
+            <ThemeToggle />
             <div className="text-right">
               <p className="text-sm font-medium text-slate-900">{user.username}</p>
               <p className="text-xs text-slate-600">{user.role}</p>
