@@ -32,13 +32,13 @@ export default function OverviewPage() {
       <BudgetProgress />
       <RunwayForecast />
       <div className="grid gap-6 lg:grid-cols-2">
-        <div className="card">
+        <div className="card fade-enter">
           <div className="mb-4">
             <h2 className="text-lg font-semibold text-slate-900">By category</h2>
           </div>
           <CategoryChart />
         </div>
-        <div className="card">
+        <div className="card fade-enter">
           <div className="mb-4">
             <h2 className="text-lg font-semibold text-slate-900">Income vs Expense</h2>
           </div>

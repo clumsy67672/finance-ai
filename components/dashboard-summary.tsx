@@ -4,13 +4,48 @@ import useSWR from 'swr';
 import { formatCurrency } from '@/lib/utils';
 import type { SummaryStats } from '@/types';
 import { usePeriod, PERIOD_OPTIONS } from './period-context';
+import { useCountUp } from './count-up';
 
 const CARDS = [
-  { key: 'totalIncome' as const, label: 'Income', accent: 'text-emerald-600' },
-  { key: 'totalExpense' as const, label: 'Expense', accent: 'text-rose-600' },
-  { key: 'net' as const, label: 'Net', accent: 'text-slate-900' },
-  { key: 'count' as const, label: 'Transactions', accent: 'text-slate-700' },
+  { key: 'totalIncome' as const, label: 'Income', accent: 'text-emerald-600', count: false },
+  { key: 'totalExpense' as const, label: 'Expense', accent: 'text-rose-600', count: false },
+  { key: 'net' as const, label: 'Net', accent: 'text-slate-900', count: false },
+  { key: 'count' as const, label: 'Transactions', accent: 'text-slate-700', count: true },
 ];
+
+function KpiTile({
+  label,
+  value,
+  isCount,
+  accent,
+  index,
+}: {
+  label: string;
+  value: number | null;
+  isCount: boolean;
+  accent: string;
+  index: number;
+}) {
+  const animated = useCountUp(value ?? 0);
+  const display =
+    value === null || value === undefined
+      ? '—'
+      : isCount
+        ? String(Math.round(animated))
+        : formatCurrency(Math.round(animated));
+
+  return (
+    <div
+      className="tile-enter flex min-w-0 flex-col rounded-lg border border-slate-200 bg-white px-4 py-3"
+      style={{ animationDelay: `${index * 70}ms` }}
+    >
+      <dt className="truncate text-xs font-medium text-slate-600">{label}</dt>
+      <dd className="mt-0.5 whitespace-nowrap text-lg font-semibold leading-tight tabular-nums">
+        <span className={value === null ? 'text-slate-400' : accent}>{display}</span>
+      </dd>
+    </div>
+  );
+}
 
 export default function DashboardSummary() {
   const { period, setPeriod } = usePeriod();
@@ -40,31 +75,18 @@ export default function DashboardSummary() {
         </div>
       </div>
       <dl className="grid grid-cols-2 gap-3">
-        {CARDS.map((card) => {
-          const value = stats
-            ? card.key === 'count'
-              ? stats.count
-              : (stats as unknown as Record<string, number>)[card.key]
-            : null;
-          const label = card.label;
-          const display =
-            value === null || value === undefined
-              ? '—'
-              : card.key === 'count'
-                ? String(value)
-                : formatCurrency(value);
-          return (
-            <div
-              key={card.key}
-              className="flex min-w-0 flex-col rounded-lg border border-slate-200 bg-white px-4 py-3"
-            >
-              <dt className="truncate text-xs font-medium text-slate-600">{label}</dt>
-              <dd className="mt-0.5 whitespace-nowrap text-lg font-semibold leading-tight tabular-nums">
-                <span className={value === null ? 'text-slate-400' : card.accent}>{display}</span>
-              </dd>
-            </div>
-          );
-        })}
+        {CARDS.map((card, i) => (
+          <KpiTile
+            key={card.key}
+            index={i}
+            label={card.label}
+            value={
+              stats ? ((stats as unknown as Record<string, number>)[card.key] ?? null) : null
+            }
+            isCount={card.count}
+            accent={card.accent}
+          />
+        ))}
       </dl>
     </section>
   );
