@@ -17,6 +17,7 @@ export default function OverviewPage() {
   return (
     <DashboardProvider>
     <div className="space-y-8">
+      <h1 className="sr-only">Overview</h1>
       <PendingBadge />
       <div className="grid gap-6 lg:grid-cols-2">
         <ChatInput />

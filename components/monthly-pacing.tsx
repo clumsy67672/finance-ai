@@ -19,13 +19,13 @@ export default function MonthlyPacing() {
         <h2 className="text-lg font-semibold text-slate-900">Burn rate</h2>
         <span
           className={`rounded-full px-3 py-0.5 text-xs font-semibold ${
-            overPace ? 'bg-rose-600 text-white' : 'bg-emerald-600 text-white'
+            overPace ? 'bg-rose-100 text-rose-800' : 'bg-emerald-100 text-emerald-800'
           }`}
         >
           {overPace ? 'Ahead of pace' : 'On track'}
         </span>
       </div>
-      <p className={`text-sm ${overPace ? 'text-rose-700' : 'text-slate-600'}`}>
+      <p className={`max-w-prose text-sm ${overPace ? 'text-rose-700' : 'text-slate-600'}`}>
         You&apos;ve spent <span className="font-semibold">{formatCurrency(spent)}</span> of{' '}
         {income > 0 ? (
           <>

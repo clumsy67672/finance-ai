@@ -16,9 +16,9 @@ type Forecast = {
 };
 
 const STYLES: Record<Forecast['status_proyeksi'], { banner: string; badge: string; label: string }> = {
-  Safe: { banner: 'border-emerald-200 bg-emerald-50', badge: 'bg-emerald-600 text-white', label: 'Safe' },
-  Warning: { banner: 'border-amber-200 bg-amber-50', badge: 'bg-amber-500 text-white', label: 'Warning' },
-  Deficit: { banner: 'border-rose-200 bg-rose-50', badge: 'bg-rose-600 text-white', label: 'Deficit' },
+  Safe: { banner: 'border-emerald-200 bg-emerald-50', badge: 'bg-emerald-100 text-emerald-800', label: 'Safe' },
+  Warning: { banner: 'border-amber-200 bg-amber-50', badge: 'bg-amber-100 text-amber-800', label: 'Warning' },
+  Deficit: { banner: 'border-rose-200 bg-rose-50', badge: 'bg-rose-100 text-rose-800', label: 'Deficit' },
 };
 
 export default function RunwayForecast() {
@@ -123,7 +123,7 @@ export default function RunwayForecast() {
       </div>
 
       <p
-        className={`mt-3 text-sm ${
+        className={`mt-3 max-w-prose text-sm ${
           style.label === 'Safe' ? 'text-emerald-700' : style.label === 'Warning' ? 'text-amber-700' : 'text-rose-700'
         }`}
       >

@@ -13,17 +13,17 @@ type Insight = {
 const STYLES: Record<Insight['status_kesehatan'], { banner: string; badge: string; label: string }> = {
   Healthy: {
     banner: 'border-emerald-200 bg-emerald-50',
-    badge: 'bg-emerald-600 text-white',
+    badge: 'bg-emerald-100 text-emerald-800',
     label: 'Healthy'
   },
   Warning: {
     banner: 'border-amber-200 bg-amber-50',
-    badge: 'bg-amber-500 text-white',
+    badge: 'bg-amber-100 text-amber-800',
     label: 'Warning'
   },
   Critical: {
     banner: 'border-rose-200 bg-rose-50',
-    badge: 'bg-rose-600 text-white',
+    badge: 'bg-rose-100 text-rose-800',
     label: 'Critical'
   }
 };
