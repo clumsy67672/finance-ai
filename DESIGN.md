@@ -168,6 +168,9 @@ so no element sits hidden during a stagger).
   per tile at 70ms (a legit single-list stagger).
 - **Chart cards** `.fade-enter` / `@keyframes fade-in`: soft 420ms opacity fade
   (data-driven surfaces only — not a blanket reveal on every section).
+- **Route transitions** `.route-enter`: `<main>` is wrapped in a pathname-keyed
+  `RouteTransition` client component that remounts on navigation, replaying a
+  320ms `rise-in` on every Overview ⇄ Transactions ⇄ Budgets switch.
 
 Ease curve used: `cubic-bezier(0.22, 1, 0.36, 1)` (≈ ease-out-quart). No bounce,
 no elastic, no stagger on unrelated sections. Chart.js itself is left unanimated.
@@ -219,11 +222,15 @@ override layer that remaps the app's small, shared vocabulary in one place:
   `bg-slate-100`→`slate-700` (inputs/segments).
 - Text: `slate-900`→`slate-100`, `700/600`→`slate-300`, `500`→`slate-400`,
   `400`→`slate-500`, tuned to hold ≥4.5:1 body/ink and ~3.5:1+ muted on slate-800.
+  `.dark` also overrides the theme's `--foreground`/`--background` vars, so any
+  **unstyled/inherited text** (e.g. the Transactions **Category** cell) flips
+  light instead of staying dark-on-dark — a real bug the override catches.
 - Borders/dividers/placeholder + focused `input`.
 - Buttons **invert** primary ink (slate-100 bg + slate-900 text) so the primary CTA
   stays high-contrast in dark; secondary/danger become outlined.
 - Status tints (50/200/700) push to their 950/900/100 ends; translucent budget
-  readouts go opaque slate.
+  readouts go opaque slate. Money accents (`text-emerald-600`/`rose-600`) brighten
+  to emerald-400/rose-400 so amounts stay readable on slate-800.
 
 Chart.js keeps its own colors (multicolor pie + emerald/rose trend lines stay
 legible on slate-800), so no chart code changes.

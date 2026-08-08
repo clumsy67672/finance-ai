@@ -93,6 +93,10 @@ body {
   animation: fade-in 420ms ease-out both;
 }
 
+.route-enter {
+  animation: rise-in 320ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
 /* ==========================================================================
    Dark theme (class strategy: `.dark` on <html>, toggled by ThemeToggle).
    One override layer remaps the app's small, shared slate/status vocabulary in a
@@ -101,7 +105,16 @@ body {
    ========================================================================== */
 .dark {
   color-scheme: dark;
+  /* Flip the theme's own text/bg ink so ANY unstyled/inherited text turns light
+     in dark mode (fixes bare spans like the Transactions "Category" cell, which
+     have no explicit color class and would otherwise stay dark-on-dark). */
+  --foreground: 241 245 249; /* slate-100 */
+  --background: 15 23 42;    /* slate-900 */
 }
+
+/* Money accents — brighten emerald/rose when they're on a dark surface */
+.dark .text-emerald-600 { color: #34d399; }
+.dark .text-rose-600 { color: #fb7185; }
 
 /* Surfaces */
 .dark .bg-white { background-color: #1e293b; }   /* slate-800 — cards, tiles, strip */

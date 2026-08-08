@@ -2,6 +2,7 @@ import DashboardNav from '@/components/dashboard-nav';
 import LogoutButton from '@/components/logout-button';
 import BrandLogo from '@/components/brand-logo';
 import ThemeToggle from '@/components/theme-toggle';
+import RouteTransition from '@/components/route-transition';
 import { requireUser } from '@/lib/auth';
 
 const NAV_ITEMS: { href: string; label: string; roles?: Array<'admin' | 'member'> }[] = [
@@ -31,7 +32,9 @@ export default async function DashboardLayout({ children }: { children: React.Re
           <DashboardNav items={NAV_ITEMS} role={user.role} />
         </div>
       </header>
-      <main className="mx-auto max-w-6xl px-6 py-8">{children}</main>
+      <main className="mx-auto max-w-6xl px-6 py-8">
+        <RouteTransition>{children}</RouteTransition>
+      </main>
     </div>
   );
 }

@@ -274,7 +274,7 @@ export default function TransactionsView({ role, initialFilters }: Props) {
                       <span className="font-medium text-slate-900">{transaction.cleanNote}</span>
                     )}
                   </td>
-                  <td className="p-2">
+                  <td className="p-2 text-slate-700">
                     {editingId === transaction.id ? (
                       <select
                         value={formValues.category}
