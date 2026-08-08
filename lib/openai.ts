@@ -30,7 +30,7 @@ NUMBER NORMALIZATION (CRITICAL):
 - k=1000, rb=1000, ribu=1000, jt=1000000, juta=1000000, m=1000000
 - 40k → 40000, 1.5jt → 1500000, 3m → 3000000
 CATEGORY GUARDRAILS (STRICT):
-  rokok, sigaret, twiz → Entertainment (NOT Food & Drink)
+  rokok, sigaret, twiz → Entertainment (NOT Food & Drink, NOT Loan / Debt)
   ayam mentah, ayam utuh, daging → Groceries (raw ingredients)
   ayam goreng, ayam crispy, makanan matang → Food & Drink (cooked meals)
   minum, minuman → Food & Drink
@@ -322,11 +322,12 @@ Each object:
 Rules:
 - Input is in Bahasa Indonesia — understand slang, typos, and abbreviations
 - Split text into individual transactions by recognizing amounts, transition words (terus, lalu, lanjut), or natural boundaries
+- VERY IMPORTANT: When ONE amount covers MULTIPLE items joined by "dan" (and), keep it as ONE transaction (e.g. "parkir dan rokok 5000" → ONE transaction amount=5000, note="Parkir dan Rokok"; do NOT create two 5000 transactions)
 - Fix typos in the note (e.g. "serviis" → "Servis", "gacoan" → "Mie Gacoan")
 NUMBER NORMALIZATION (CRITICAL):
 - "amount" must ALWAYS be a bare integer, never a string like "40k" — 40k → 40000, 1.5jt → 1500000, 3m → 3000000
 CATEGORY GUARDRAILS (STRICT):
-- rokok, sigaret, twiz → Entertainment (NOT Food & Drink)
+- rokok, sigaret, twiz → Entertainment (NOT Food & Drink, NOT Loan / Debt)
 - ayam mentah, ayam utuh, daging → Groceries (raw ingredients)
 - ayam goreng, ayam crispy, makanan matang → Food & Drink (cooked meals)
 - minum → Food & Drink
