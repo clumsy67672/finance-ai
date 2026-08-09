@@ -235,6 +235,9 @@ override layer that remaps the app's small, shared vocabulary in one place:
 - Status tints (50/200/700) push to their 950/900/100 ends; translucent budget
   readouts go opaque slate. Money accents (`text-emerald-600`/`rose-600`) brighten
   to emerald-400/rose-400 so amounts stay readable on slate-800.
+- **Solid ink fills** (`bg-slate-900` spent bar, Needs segment, legend swatches)
+  flip to `slate-200` so they read against the dark track — they were invisible
+  dark-on-dark. Red markers (`bg-red-500/600`) brighten to rose fills.
 
 Chart.js keeps its own colors (multicolor pie + emerald/rose trend lines stay
 legible on slate-800), so no chart code changes.
