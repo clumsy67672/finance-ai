@@ -170,12 +170,10 @@ body {
 .dark .btn-danger-soft { border-color: #7f1d1d; background-color: transparent; color: #fda4af; }
 .dark .btn-danger-soft:hover:not(:disabled) { background-color: #450a0a; }
 
-/* Inputs */
+/* Inputs + focus states — the chat textarea goes white on :focus; with light
+   typed text that was invisible in dark mode, so keep it dark while focused. */
 .dark .input { background-color: #0f172a; border-color: #334155; color: #f1f5f9; }
 .dark .input::placeholder { color: #64748b; }
-
-/* Focus states — the chat textarea (and other inputs) go white + dark-border on
-   :focus; with light typed text that was invisible in dark mode. Keep them dark. */
 .dark .focus\:bg-white:focus { background-color: #0f172a; }
 .dark .focus\:border-slate-900:focus { border-color: #64748b; }
 .dark .focus\:ring-slate-900\/10:focus { --tw-ring-color: rgba(241, 245, 249, 0.18); }
