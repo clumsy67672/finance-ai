@@ -97,6 +97,20 @@ body {
   animation: rise-in 320ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
+/* Smooth theme fade: while a theme toggle is in flight, animate paint-only
+   properties (bg/color/border/SVG fill+stroke) so light↔dark crossfades.
+   Scoped to html.theme-transition (toggled briefly by ThemeToggle) so normal
+   hovers keep their fast 150ms; disabled under prefers-reduced-motion. */
+@media (prefers-reduced-motion: no-preference) {
+  html.theme-transition *,
+  html.theme-transition *::before,
+  html.theme-transition *::after {
+    transition-property: background-color, color, border-color, fill, stroke;
+    transition-duration: 300ms;
+    transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+  }
+}
+
 /* ==========================================================================
    Dark theme (class strategy: `.dark` on <html>, toggled by ThemeToggle).
    One override layer remaps the app's small, shared slate/status vocabulary in a
@@ -122,6 +136,12 @@ body {
 .dark .bg-slate-100 { background-color: #27364a; } /* slate-700 — inputs, segmented track */
 .dark .bg-slate-200 { background-color: #334155; }
 .dark .bg-slate-300 { background-color: #475569; }
+/* Solid ink fills (spent bar, Needs segment, legend swatches) flip to light so
+   they read against the dark track — was dark-on-dark and invisible. */
+.dark .bg-slate-900 { background-color: #e2e8f0; }
+/* Budget/runway markers brighten for visibility on dark */
+.dark .bg-red-500 { background-color: #fda4af; }
+.dark .bg-red-600 { background-color: #fb7185; }
 
 /* Text — lift toward the light end of the ramp for contrast on slate-800 */
 .dark .text-slate-900 { color: #f1f5f9; }

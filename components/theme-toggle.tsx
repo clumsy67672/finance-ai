@@ -36,6 +36,9 @@ export default function ThemeToggle() {
 
   const toggle = () => {
     const next = !dark;
+    // Crossfade the palette while the flip is in flight, then drop the class.
+    const root = document.documentElement;
+    root.classList.add('theme-transition');
     setDark(next);
     apply(next);
     try {
@@ -43,6 +46,7 @@ export default function ThemeToggle() {
     } catch {
       /* private mode — ignore */
     }
+    window.setTimeout(() => root.classList.remove('theme-transition'), 350);
   };
 
   return (

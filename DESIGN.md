@@ -171,6 +171,10 @@ so no element sits hidden during a stagger).
 - **Route transitions** `.route-enter`: `<main>` is wrapped in a pathname-keyed
   `RouteTransition` client component that remounts on navigation, replaying a
   320ms `rise-in` on every Overview ⇄ Transactions ⇄ Budgets switch.
+- **Theme fade** `html.theme-transition`: ThemeToggle adds a transient class that
+  crossfades paint-only properties (bg/color/border/SVG fill+stroke) over 300ms
+  while light↔dark flips, then drops the class so normal 150ms hovers stay snappy.
+  Gated to `prefers-reduced-motion: no-preference`.
 
 Ease curve used: `cubic-bezier(0.22, 1, 0.36, 1)` (≈ ease-out-quart). No bounce,
 no elastic, no stagger on unrelated sections. Chart.js itself is left unanimated.
