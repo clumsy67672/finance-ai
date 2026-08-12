@@ -66,14 +66,25 @@ export async function callOmniRoute(body: object): Promise<string> {
   const apiKey = process.env.OPENAI_API_KEY || 'sk-local';
   const url = `${baseUrl.replace(/\/$/, '')}/chat/completions`;
 
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${apiKey}`
-    },
-    body: JSON.stringify(body)
-  });
+  // Fail fast when the upstream gateway/backend stalls so the route's
+  // try/catch fallback path triggers instead of hanging the request.
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 12000);
+
+  let response: Response;
+  try {
+    response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`
+      },
+      body: JSON.stringify(body),
+      signal: controller.signal
+    });
+  } finally {
+    clearTimeout(timeout);
+  }
 
   if (!response.ok) {
     const text = await response.text();
