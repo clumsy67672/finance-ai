@@ -8,7 +8,8 @@ import { requireUser } from '@/lib/auth';
 const NAV_ITEMS: { href: string; label: string; roles?: Array<'admin' | 'member'> }[] = [
   { href: '/', label: 'Overview' },
   { href: '/transactions', label: 'Transactions' },
-  { href: '/budgets', label: 'Budgets' }
+  { href: '/budgets', label: 'Budgets' },
+  { href: '/goals', label: 'Goals' }
 ];
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
