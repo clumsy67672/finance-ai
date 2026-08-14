@@ -35,6 +35,8 @@ model User {
   sessions     Session[]
   recurringTxs RecurringTx[]
   budgets     Budget[]
+  goals       Goal[]
+  challenges  Challenge[]
 }
 
 model Session {
@@ -122,4 +124,33 @@ model Budget {
   updatedAt DateTime @updatedAt
 
   @@unique([userId, category])
+}
+
+model Goal {
+  id        String    @id @default(uuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String    @db.VarChar(200)
+  note      String?   @db.VarChar(500)
+  amount    Int       // target amount in rupiah
+  saved     Int       @default(0) // current saved amount
+  deadline  DateTime?
+  achieved  Boolean   @default(false)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Challenge {
+  id         String    @id @default(uuid())
+  userId     String
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title      String    @db.VarChar(200)
+  note       String?   @db.VarChar(500)
+  amount     Int       // monthly obligation
+  startDate  DateTime
+  endDate    DateTime?
+  active     Boolean   @default(true)
+  severity   String    @default("high") // low | medium | high | critical
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
 }
