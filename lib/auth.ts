@@ -46,7 +46,8 @@ export async function createSession(userId: string) {
     secure: false,
     sameSite: 'lax',
     maxAge: SESSION_TTL_SECONDS,
-    path: '/'
+    path: '/',
+    domain: '.localhost'
   });
 }
 
