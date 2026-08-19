@@ -9,7 +9,8 @@ const NAV_ITEMS: { href: string; label: string; roles?: Array<'admin' | 'member'
   { href: '/', label: 'Overview' },
   { href: '/transactions', label: 'Transactions' },
   { href: '/budgets', label: 'Budgets' },
-  { href: '/goals', label: 'Goals' }
+  { href: '/goals', label: 'Goals' },
+  { href: '/meal-prep', label: 'Meal Prep' }
 ];
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
